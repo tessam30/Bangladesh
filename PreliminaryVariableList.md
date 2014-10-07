@@ -1,5 +1,4 @@
-####Preliminary Variable List to Investigate
-===  
+####Preliminary Variable List to Investigate  
 The list below is the preliminary variable list that will be investigated as part of the GLA.  The full survey can be found [here][1].  
 
 Agricultural variables to examine  
