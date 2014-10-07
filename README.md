@@ -1,6 +1,6 @@
 Bangladesh
 ==========
-**** Livelihoods Analysis for Bangladesh Mission
+****Livelihoods Analysis for Bangladesh Mission  
 ===
 
 This repository contains all the Stata, R, and Python code to reproduce the Bangladesh GLA. To reporoduce the analysis clone the repository or download the tarball of the entire project. All data used in the analysis are from the [Feed the Future Baseline Survey][1].  
