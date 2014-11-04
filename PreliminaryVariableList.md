@@ -2,7 +2,7 @@
 The list below is the preliminary variable list that will be investigated as part of the GLA.  The full survey can be found [here][1].  
 
 Agricultural variables to examine  
-Dependent = shocks (p. 73-76)  
+Dependent = shocks (p. 73-76)  - Medical expenses due to injury or illness dominate. What should our criteria be for the type of shock?
 Independent =  
 page / code number  
 3/b2_01  
