@@ -1,5 +1,5 @@
 
-Livelihoods Analysis for Bangladesh   
+Geospatial Livelihoods Analysis  
 ===
 <p align="center">
   <img src="http://www.feedthefuture.gov/sites/default/files/countries/images/Bangladesh%20country%20map.jpg" width="400px" height="400px" /> 
