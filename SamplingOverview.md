@@ -15,16 +15,16 @@ The sample is representative of rural areas in each of the seven divisions of th
 
 Around 6,500 households were surveyed using a two-stage stratified sampling design. In stage one, 325 PSUs were allocated to eight strata (7 divisions + FTF zones) using probability proportional-to-size based on the total number of households in each stratum. This step resulted in the following distribution of PSUs:
 
-| Division  | PSU distribution | Households Sampled |
-| ------------- |-----: | -----:
-| Barisal  | 21  | 700 |  
+| Division  | PSU distribution | National | FTF | 
+| ------------- |-----: | -----: | ----: |
+| Barisal  | 21  | 420 | 280 |    
 | Chittagong  | 48  | 960 |   
-| Dhaka  | 87  | 1,980 |  
-| Khulna  | 27  | 1,020 |   
+| Dhaka  | 87  | 1,740 | 240 |    
+| Khulna  | 27  | 540 | 480 |     
 | Rajshahi  | 29  | 580 |  
 | Rangpur  | 27  | 543 |   
 | Sylhet  | 36  | 720 |  
-| FTF Zone  | 50  |  1000 | 
+| FTF Zone  | 50  | 0 | 1,000|   
 
 After selecting the PSUs, the survey team conducted a complete census of the 325 selected villages. From the census list, 20 households were randomly selected and interviews were conducted with male and female respondents from each household. 
 
