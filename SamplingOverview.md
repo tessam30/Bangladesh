@@ -25,6 +25,7 @@ Around 6,500 households were surveyed using a two-stage stratified sampling desi
 | Rangpur  | 27  | 543 |   
 | Sylhet  | 36  | 720 |  
 | FTF Zone  | 50  | 0 | 1,000|   
+| Total | 325 | 5,503 | 1,000| 
 
 After selecting the PSUs, the survey team conducted a complete census of the 325 selected villages. From the census list, 20 households were randomly selected and interviews were conducted with male and female respondents from each household. 
 
