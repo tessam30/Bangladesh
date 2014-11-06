@@ -9,17 +9,17 @@ __Dependent = shocks (p. 73-76)__
   
 __Independent =  page / code number__    
 *Education Module -- All these questions are mainly towards children in the household. Only 2 hoh answered them.*  
-3/b2_01: attend school?
-3/b2_05: type of school?  
-3/b2_06: distance to school?
+3/b2_01: attend school?  
+3/b2_05: type of school?    
+3/b2_06: distance to school?  
 
 *Employment (individuals can have more than on entry)*  
 5/c01: employment status last 7 days   
 5/c04: length of unemployment
 
-*Asset vectors*
-7/d1_02 
-12/e01  
+*Asset vectors*  
+7/d1_02   
+12/e01    
 12/e02  
 13/f01  
 13/f02  
