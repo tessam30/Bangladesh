@@ -2,18 +2,23 @@
 The list below is the preliminary variable list that will be investigated as part of the GLA.  The full survey can be found [here][1].  
 
 Agricultural variables to examine  
-Dependent = shocks (p. 73-76)  - 
+__Dependent = shocks (p. 73-76)__   
 * *Medical expenses due to injury or illness dominate. What should our criteria be for the type of shock?*  
 * *How recent does a shock have to be -- survey asks for 5 year recall*
 * *Was there any interested in looking at how households coped?*  
+  
+__Independent =  page / code number__    
+*Education Module -- All these questions are mainly towards children in the household. Only 2 hoh answered them.*  
+3/b2_01: attend school?
+3/b2_05: type of school?  
+3/b2_06: distance to school?
 
-Independent =  page / code number  
-3/b2_01  
-3/b2_05  
-3/b2_06  
-5/c01  
-5/c04  
-7/d1_02  
+*Employment (individuals can have more than on entry)*  
+5/c01: employment status last 7 days   
+5/c04: length of unemployment
+
+*Asset vectors*
+7/d1_02 
 12/e01  
 12/e02  
 13/f01  
