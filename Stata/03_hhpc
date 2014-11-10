@@ -1,0 +1,109 @@
+/*-------------------------------------------------------------------------------
+# Name:		03_hhpc
+# Purpose:	Process household data and create physical capital indices
+# Author:	Tim Essam, Ph.D.
+# Created:	2014/11/05
+# Modified: 2014/11/05
+# Owner:	USAID GeoCenter | OakStream Systems, LLC
+# License:	MIT License
+# Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
+# Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
+#-------------------------------------------------------------------------------
+*/
+clear
+capture log close
+log using "$pathlog/hhpc", replace
+set more off
+
+/* Load module with information on household assets. */
+use "$pathin/006_mod_d1_male.dta", clear
+
+* Create variables reflecting ownership of different durable assets
+/* Automate the process a bit to make processing easier*/
+
+* create vector of assets for which binary variables are created
+#delimit ;
+local assets trunk bucket stove cookpots bed cabinet 
+	table hukka fan iron radio cd clock tvbw tvclr
+	gold sew bike rickshaw van boat elecboat moto 
+	mobile landphone thresher mill randa saw hammer patkoa
+	fishnet spade axe shovel shabol daa horse mule
+	donkey;
+#delimit cr
+local count = 1
+foreach x of local assets {
+	bys a01: g byte `x' = d1_02 == `count' & d1_03 == 1
+	la var `x' "HH owns `x'"
+	
+	* Check that asset matches order
+	display in yellow "`x': `count' asset code"
+	local count = `count'+1
+	}
+*end
+
+by a01: g cashOnHand = d1_04 if d1_02 == 42 
+replace cashOnHand = 0 if cashOnHand == .
+la var cashOnHand "Cash on hand at time of survey"
+
+by a01: g jewelryVal = d1_10 if d1_02 == 16
+replace jewelryVal = 0 if jewelryVal == .
+la var jewelryVal "Value of jewelry"
+
+by a01: g byte solar = d1_02 == 43 & d1_03 == 1
+la var solar "hh has solar energy panel"
+
+by a01: g byte generator = d1_02 == 44 & d1_03 == 1
+la var generator "hh has electricity generator"
+
+* Exchange rate was about 0.014 dollars to Taka in 2011
+* or about 71 Taka to dollars 
+* Calculate value of durables owned and check distribution
+sort a01 d1_02
+egen hhDurablesValue = sum(d1_10), by(a01 d1_02)
+tabstat hhDurablesValue, by(d1_02) stat(mean sd min max)
+
+* Collapse down to HH level
+include "$pathdo/copylabels.do"
+collapse (sum) hhDurablesValue (max) trunk-generator, by(a01)
+include "$pathdo/attachlabels.do"
+
+* Run summary statistics on assets
+tabstat trunk-generator, stat(mean sd min max)
+
+* Create wealth index based on durable assets
+#delimit ;
+factor trunk bucket stove cookpots bed cabinet table hukka fan 
+	iron radio cd clock tvbw tvclr sew bike rickshaw van boat 
+	elecboat moto mobile landphone, pcf;
+#delimit cr
+rotate
+predict wealth
+
+* Plot loadings for review
+loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
+	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ title(Household wealth index loadings)
+graph export "$pathgraph/wealthLoadings.png", as(png) replace
+scree, title(Scree plot of wealth index)
+graph export "$pathgragh/wealthScree.png", as(png) replace
+
+* Generate variable reflecting fungible wealth
+g fungWealth = jewelryVal + cashOnHand
+la var fungWealth "fungible wealth holdings"
+
+save "$pathout/hhdurables.dta", replace
+
+*************
+* Ag Assets *
+*************
+
+*load module
+use "$pathin/007_mod_d2_male.dta", clear
+
+
+
+
+
+
+
