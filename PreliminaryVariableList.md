@@ -8,7 +8,8 @@ __Dependent = shocks (p. 73-76)__
 * *Was there any interested in looking at how households coped?*  
   
 __Independent =  page / code number__    
-*Education Module -- All these questions are mainly towards children in the household. Only 2 hoh answered them.*  
+*Education Module -- All these questions are mainly towards children in the household. Only 2 hoh answered them.* 
+__*TODO__: Need to create household level information from school information*  
 3/b2_01: attend school?  
 3/b2_05: type of school?    
 3/b2_06: distance to school?  
@@ -18,7 +19,7 @@ __Independent =  page / code number__
 5/c04: length of unemployment
 
 *Asset vectors*  
-7/d1_02   
+7/d1_02: These will be used to create a wealth index based on factor analysis.  
 12/e01    
 12/e02  
 13/f01  
