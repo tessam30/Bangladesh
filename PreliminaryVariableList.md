@@ -18,12 +18,14 @@ __Independent =  page / code number__
 * 5/c01: employment status last 7 days   
 * 5/c04: length of unemployment
 
-*Asset vectors*  
+*Asset vectors* 
+*Tropical livestock units cannot be calculated b/c in module d1, question q1_01, code 41 does not include animal names!*
 * *7-11/d1_02: These will be used to create a indices based on factor analysis.*  
-*Tropical livestock units cannot be calculated b/c in module d1, question q1_01, code 41 does not include animal names!*__ 
 
-12/e01    
-12/e02  
+*Savings information*
+* 12/e01    
+* 12/e02
+ 
 13/f01  
 13/f02  
 16/crop code  
