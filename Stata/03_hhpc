@@ -97,13 +97,64 @@ save "$pathout/hhdurables.dta", replace
 *************
 * Ag Assets *
 *************
+bob
+
+*TODO: fix inlist commands, change look-up codes, translate items in workbook.
 
 *load module
 use "$pathin/007_mod_d2_male.dta", clear
+g handtool= as06q04 if inlist(as06q02, 1, 2, 3, 4, 5, 6, 7)==1 & as06q03==1
+g plow = 	as06q04 if inlist(as06q02, 8)==1 & as06q03==1
+g cart = 	as06q04 if inlist(as06q02, 9)==1 & as06q03==1
+g tractor = as06q04 if inlist(as06q02, 10)==1 & as06q03==1
+g yoke = 	as06q04 if inlist(as06q02, 11)==1 & as06q03==1
+g seeder = 	as06q04 if inlist(as06q02, 12)==1 & as06q03==1
+g sprayer = as06q04 if inlist(as06q02, 13)==1 & as06q03==1
+g watering = as06q04 if inlist(as06q02, 15)==1 & as06q03==1
+g motorpump = as06q04 if inlist(as06q02, 16)==1 & as06q03==1
+g thresher = as06q04 if inlist(as06q02, 17)==1 & as06q03==1
+g storage = as06q04 if inlist(as06q02, 18)==1 & as06q03==1
+g chxpen = as06q04 if inlist(as06q02, 19)==1 & as06q03==1
+g shed = 	as06q04 if inlist(as06q02, 20)==1 & as06q03==1
+g generator = as06q04 if inlist(as06q02, 21)==1 & as06q03==1
+g dryshed = as06q04 if inlist(as06q02, 22)==1 & as06q03==1
+g sheller = as06q04 if inlist(as06q02, 23)==1 & as06q03==1
+g baler = 	as06q04 if inlist(as06q02, 24)==1 & as06q03==1
+g silo = 	as06q04 if inlist(as06q02, 25)==1 & as06q03==1
+
+*Apply lables to variables
+foreach name of varlist handtool-silo {
+	la var `name' "No. `name's owned by hh"
+	by hid: egen n`name' = total(`name')
+	la var n`name' "Total `name's owned by hh"
+}
+*end
 
 
 
 
+
+
+
+
+
+
+
+
+
+* Create TLU (based on values from http://www.fao.org/wairdocs/ilri/x5443e/x5443e04.htm)
+/* Notes: Sheep includes sheep and goats
+Horse includes all draught animals (donkey, horse, bullock)
+chxTLU includes all small animals (chicken, fowl, etc).
+*/
+
+g camelVal = 1.0
+g cattleVal = 0.70
+g sheepVal = 0.10
+g horsesVal = 0.80
+g mulesVal = 0.70
+g assesVal = 0.50
+g chxVal = 0.01
 
 
 
