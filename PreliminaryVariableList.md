@@ -19,7 +19,8 @@ __*TODO__: Need to create household level information from school information*
 5/c04: length of unemployment
 
 *Asset vectors*  
-7/d1_02: These will be used to create a wealth index based on factor analysis.  
+7-11/d1_02: These will be used to create a indices based on factor analysis.   
+**Tropical livestock units cannot be calculated b/c in module d1, question q1_01, code 41 does not include animal names!**  
 12/e01    
 12/e02  
 13/f01  
