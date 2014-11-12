@@ -24,7 +24,7 @@ use "$pathin/006_mod_d1_male.dta", clear
 * create vector of assets for which binary variables are created
 #delimit ;
 local assets trunk bucket stove cookpots bed cabinet 
-	table hukka fan iron radio cd clock tvbw tvclr
+	tableChairs hukka fan iron radio cd clock tvbw tvclr
 	gold sew bike rickshaw van boat elecboat moto 
 	mobile landphone thresher mill randa saw hammer patkoa
 	fishnet spade axe shovel shabol daa horse mule
@@ -32,61 +32,91 @@ local assets trunk bucket stove cookpots bed cabinet
 #delimit cr
 local count = 1
 foreach x of local assets {
-	bys a01: g byte `x' = d1_02 == `count' & d1_03 == 1
-	la var `x' "HH owns `x'"
+	qui g byte `x' = (d1_02 == `count' & d1_03 == 1)
 	
 	* Check that asset matches order
 	display in yellow "`x': `count' asset code"
 	local count = `count'+1
 	}
 *end
+foreach name of varlist trunk-donkey {
+	la var `name' "No. `name's owned by hh"
+	bys a01: egen n`name' = total(`name')
+	la var n`name' "Total `name's owned by hh"
+}
+*end
 
-by a01: g cashOnHand = d1_04 if d1_02 == 42 
+bys a01: g nsolar = d1_04 if d1_02 == 43 & d1_03 == 1
+la var nsolar "hh has solar energy panel"
+
+bys a01: g ngenerator = d1_04 if d1_02 == 44 & d1_03 == 1
+la var ngenerator "hh has electricity generator"
+
+bys a01: g cashOnHand = d1_04 if d1_02 == 42 
 replace cashOnHand = 0 if cashOnHand == .
 la var cashOnHand "Cash on hand at time of survey"
 
-by a01: g jewelryVal = d1_10 if d1_02 == 16
+bys a01: g jewelryVal = d1_10 if d1_02 == 16
 replace jewelryVal = 0 if jewelryVal == .
 la var jewelryVal "Value of jewelry"
-
-by a01: g byte solar = d1_02 == 43 & d1_03 == 1
-la var solar "hh has solar energy panel"
-
-by a01: g byte generator = d1_02 == 44 & d1_03 == 1
-la var generator "hh has electricity generator"
 
 * Exchange rate was about 0.014 dollars to Taka in 2011
 * or about 71 Taka to dollars 
 * Calculate value of durables owned and check distribution
 sort a01 d1_02
 egen hhDurablesValue = sum(d1_10), by(a01 d1_02)
-tabstat hhDurablesValue, by(d1_02) stat(mean sd min max)
+*tabstat hhDurablesValue, by(d1_02) stat(mean sd min max)
+
+* Another method for hhdurval
+egen munitprice = median(d1_10), by(d1_02)
+la var munitprice "Median price of durable asset"
+
+* Calculate total value of all durables (including gold and jewelry)
+egen hhdurasset = total(d1_04 * munitprice), by(a01)
+la var hhdurasset "Total value of all durable assets"
+replace hhdurasset = . if hhdurasset ==0
+
+*Collapse process
+ds (d1* munitprice), not
+keep `r(varlist)'
+
+*Order the variable list for ease
+order a01 hhDurablesValue
 
 * Collapse down to HH level
 include "$pathdo/copylabels.do"
-collapse (sum) hhDurablesValue (max) trunk-generator, by(a01)
+
+ds (a01 hhDurablesValue), not
+collapse (sum) hhDurablesValue (max) `r(varlist)', by(a01)
+
 include "$pathdo/attachlabels.do"
 
-* Run summary statistics on assets
-tabstat trunk-generator, stat(mean sd min max)
 
-* Create wealth index based on durable assets
+
+* Run summary statistics on assets
+tabstat ntrunk-ngenerator, stat(mean sd min max)
+
+* Winsorize the asset values
+* winsor2 hhDurablesValue hhdurasset, replace cuts(1 99)
+
+* Create durable wealth index based on durable assets
 #delimit ;
-factor trunk bucket stove cookpots bed cabinet table hukka fan 
-	iron radio cd clock tvbw tvclr sew bike rickshaw van boat 
-	elecboat moto mobile landphone, pcf;
+	factor trunk bucket stove cookpots bed cabinet tableChairs hukka 
+	fan iron radio cd clock tvbw tvclr sew bike rickshaw van 
+	boat elecboat moto mobile landphone, pcf;
 #delimit cr
+
 rotate
-predict wealth
+predict durwealth
 
 * Plot loadings for review
 loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
-	*/ title(Household wealth index loadings)
-graph export "$pathgraph/wealthLoadings.png", as(png) replace
-scree, title(Scree plot of wealth index)
-graph export "$pathgragh/wealthScree.png", as(png) replace
+	*/ title(Household durable wealth index loadings)
+graph export "$pathgraph/durwealthLoadings.png", as(png) replace
+scree, title(Scree plot of durable wealth index)
+graph export "$pathgragh/durwealthScree.png", as(png) replace
 
 * Generate variable reflecting fungible wealth
 g fungWealth = jewelryVal + cashOnHand
@@ -97,56 +127,65 @@ save "$pathout/hhdurables.dta", replace
 *************
 * Ag Assets *
 *************
-bob
-
-*TODO: fix inlist commands, change look-up codes, translate items in workbook.
 
 *load module
 use "$pathin/007_mod_d2_male.dta", clear
-g handtool= as06q04 if inlist(as06q02, 1, 2, 3, 4, 5, 6, 7)==1 & as06q03==1
-g plow = 	as06q04 if inlist(as06q02, 8)==1 & as06q03==1
-g cart = 	as06q04 if inlist(as06q02, 9)==1 & as06q03==1
-g tractor = as06q04 if inlist(as06q02, 10)==1 & as06q03==1
-g yoke = 	as06q04 if inlist(as06q02, 11)==1 & as06q03==1
-g seeder = 	as06q04 if inlist(as06q02, 12)==1 & as06q03==1
-g sprayer = as06q04 if inlist(as06q02, 13)==1 & as06q03==1
-g watering = as06q04 if inlist(as06q02, 15)==1 & as06q03==1
-g motorpump = as06q04 if inlist(as06q02, 16)==1 & as06q03==1
-g thresher = as06q04 if inlist(as06q02, 17)==1 & as06q03==1
-g storage = as06q04 if inlist(as06q02, 18)==1 & as06q03==1
-g chxpen = as06q04 if inlist(as06q02, 19)==1 & as06q03==1
-g shed = 	as06q04 if inlist(as06q02, 20)==1 & as06q03==1
-g generator = as06q04 if inlist(as06q02, 21)==1 & as06q03==1
-g dryshed = as06q04 if inlist(as06q02, 22)==1 & as06q03==1
-g sheller = as06q04 if inlist(as06q02, 23)==1 & as06q03==1
-g baler = 	as06q04 if inlist(as06q02, 24)==1 & as06q03==1
-g silo = 	as06q04 if inlist(as06q02, 25)==1 & as06q03==1
 
-*Apply lables to variables
-foreach name of varlist handtool-silo {
-	la var `name' "No. `name's owned by hh"
-	by hid: egen n`name' = total(`name')
-	la var n`name' "Total `name's owned by hh"
-}
+* create vector of assets for which binary variables are created
+#delimit ;
+local agassets kaste nirani ladder rake ploughYoke reaper sprayer wheelbarrow
+		bullockCart pushCart;
+#delimit cr
+local count = 1
+
+foreach x of local agassets {
+	bys a01: g `x' = d2_04 if (d2_02 == `count' & d2_03 == 1)
+	replace `x' = 0 if `x' ==.
+	la var `x' "HH owns `x'"
+	
+	* Check that asset matches order
+	display in yellow "`x': `count' asset code"
+	local count = `count'+1
+	}
 *end
 
+* create vector of assets for which binary variables are created
+#delimit ;
+local machines tractor tiller trolley thresher fodderMachine swingBasket
+		Don handWell treadlePump rowerPump llp stubeWell dtubeWell
+		elecPump dieselPump elecSprayer harvester;
+#delimit cr
+local count = 12
 
+foreach x of local machines {
+	bys a01: g `x' = d2_04 if (d2_02 == `count' & d2_03 == 1)
+	replace `x' = 0 if `x' ==.
+	la var `x' "HH owns `x'"
+	
+	* Check that asset matches order
+	display in yellow "`x': `count' asset code"
+	local count = `count'+1
+	}
+*end
 
+* Calculate the median value of each asset group
+* For example: for tractors, take the median value of all tractors listed
+* Then multiply that number by the number of tractors owned by a hh 
+egen munitprice = median(d2_10), by(d2_02)
+la var munitprice "Median price of ag assets"
 
+egen hhagasset = total(d2_04 * munitprice), by(a01)
+la var hhagasset "Total value of all ag assets"
+* Question here: do we assumed if a hh does not own an asset it's value is missing
+* or zero? To be revisited before analysis (can do w/ and w/out).
+replace hhagasset = . if hhagasset ==0
 
-
-
-
-
-
-
-
-
+ 
+* CANNOT CREATE TLUS - but it doesn't appear that many household own larger animals*
 * Create TLU (based on values from http://www.fao.org/wairdocs/ilri/x5443e/x5443e04.htm)
 /* Notes: Sheep includes sheep and goats
 Horse includes all draught animals (donkey, horse, bullock)
 chxTLU includes all small animals (chicken, fowl, etc).
-*/
 
 g camelVal = 1.0
 g cattleVal = 0.70
@@ -155,6 +194,40 @@ g horsesVal = 0.80
 g mulesVal = 0.70
 g assesVal = 0.50
 g chxVal = 0.01
+*/
 
+*Collapse
+ds(d2*), not
+keep `r(varlist)'
 
+* copy variable labels to reapply
+include "$pathdo/copylabels.do"
 
+* Collapse data down to HH level
+ds(a01 munitprice), not
+#delimit ;
+	collapse (max) `r(varlist)',
+	by(a01) fast;
+#delimit cr
+
+* Reapply variable lables and save a copy
+include "$pathdo/attachlabels.do"
+
+*Run factor analysis to create ag wealth index
+ds(a01 sample_type hhagasset), not
+factor kaste- harvester, pcf
+rotate
+predict agwealth
+
+* Plot loadings for review
+loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
+	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
+	*/ title(Household wealth ag index loadings)
+graph export "$pathgraph/agwealthLoadings.png", as(png) replace
+scree, title(Scree plot of ag wealth index)
+graph export "$pathgragh/agwealthScree.png", as(png) replace
+
+merge 1:1 a01  using "$pathout/hhdurables.dta", gen(assets)
+compress
+save "$pathout/hhpc.dta", replace
