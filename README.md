@@ -10,7 +10,8 @@ The Bangladesh Integrated Household Survey dataset is a thorough assessment of c
 
 ===
 
-__This readme will be updated continually until the project ends.__
+__This readme will be updated continually until the project ends.__  
+*Disclaimer: The findings, interpretation, and conclusions expressed herein are those of the authors and do not necessarily reflect the views of United States Agency for International Development or the United States Government. All errors remain our own.*  
 
 [1]: http://www.usaid.gov/developer/FTFBangladesh 
 
