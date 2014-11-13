@@ -5,7 +5,7 @@ Agricultural variables to examine
 __Dependent = shocks (p. 73-76)__   
 * *Medical expenses due to injury or illness dominate. What should our criteria be for the type of shock?*  
 * *How recent does a shock have to be -- survey asks for 5 year recall*
-* *Was there any interested in looking at how households coped?*  
+* *Was there any interest in looking at how households coped?*  
 
 __Independent =  page / code number__    
 *Education Module -- All these questions are mainly towards children in the household. Only 2 hoh answered them.* 
