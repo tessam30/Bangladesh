@@ -116,5 +116,3 @@ drop cattleVal horsesVal mulesVal assesVal sheepVal chxVal TLUcattle TLUsheep TL
 * Compress & save
 save "$pathout/hhTLU_pc.dta", replace
 	
-
-
