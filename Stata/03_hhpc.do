@@ -30,6 +30,8 @@ local assets trunk bucket stove cookpots bed cabinet
 	fishnet spade axe shovel shabol daa horse mule
 	donkey;
 #delimit cr
+
+* Loop over each asset in order, verifying code using output (p. 7, Module D)
 local count = 1
 foreach x of local assets {
 	qui g byte `x' = (d1_02 == `count' & d1_03 == 1)
@@ -85,29 +87,33 @@ order a01 hhDurablesValue
 
 * Collapse down to HH level
 include "$pathdo/copylabels.do"
-
 ds (a01 hhDurablesValue), not
 collapse (sum) hhDurablesValue (max) `r(varlist)', by(a01)
-
 include "$pathdo/attachlabels.do"
-
-
 
 * Run summary statistics on assets
 tabstat ntrunk-ngenerator, stat(mean sd min max)
 
-* Winsorize the asset values
+* Winsorize the asset values (revisit this in QA/QC file
 * winsor2 hhDurablesValue hhdurasset, replace cuts(1 99)
 
 * Create durable wealth index based on durable assets
 #delimit ;
-	factor trunk bucket stove cookpots bed cabinet tableChairs hukka 
+	qui factor trunk bucket stove cookpots bed cabinet tableChairs hukka 
 	fan iron radio cd clock tvbw tvclr sew bike rickshaw van 
 	boat elecboat moto mobile landphone, pcf;
 #delimit cr
+qui rotate
+qui predict durwealth
 
-rotate
-predict durwealth
+/* Check Cronbach's alpha for Scale reliability coefficent higher than 0.50;
+	Scale derived is reasonable b/c the estimated correlation between it and 
+	underlying factor it is measuring is sqrt(0.69) = .8333 */
+#delimit ;
+	alpha trunk bucket stove cookpots bed cabinet tableChairs hukka 
+	fan iron radio cd clock tvbw tvclr sew bike rickshaw van 
+	boat elecboat moto mobile landphone;
+#delimit cr
 
 * Plot loadings for review
 loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
@@ -155,8 +161,10 @@ local machines tractor tiller trolley thresher fodderMachine swingBasket
 		Don handWell treadlePump rowerPump llp stubeWell dtubeWell
 		elecPump dieselPump elecSprayer harvester;
 #delimit cr
-local count = 12
 
+
+* Start count on Machinery assets (p. 10, Module D2)
+local count = 12
 foreach x of local machines {
 	bys a01: g `x' = d2_04 if (d2_02 == `count' & d2_03 == 1)
 	replace `x' = 0 if `x' ==.
@@ -180,21 +188,8 @@ la var hhagasset "Total value of all ag assets"
 * or zero? To be revisited before analysis (can do w/ and w/out).
 replace hhagasset = . if hhagasset ==0
 
- 
-* CANNOT CREATE TLUS - but it doesn't appear that many household own larger animals*
-* Create TLU (based on values from http://www.fao.org/wairdocs/ilri/x5443e/x5443e04.htm)
-/* Notes: Sheep includes sheep and goats
-Horse includes all draught animals (donkey, horse, bullock)
-chxTLU includes all small animals (chicken, fowl, etc).
-
-g camelVal = 1.0
-g cattleVal = 0.70
-g sheepVal = 0.10
-g horsesVal = 0.80
-g mulesVal = 0.70
-g assesVal = 0.50
-g chxVal = 0.01
-*/
+* What is median price of assets?
+tab d2_02, sum(munitprice) mi
 
 *Collapse
 ds(d2*), not
@@ -206,7 +201,7 @@ include "$pathdo/copylabels.do"
 * Collapse data down to HH level
 ds(a01 munitprice), not
 #delimit ;
-	collapse (max) `r(varlist)',
+	qui collapse (max) `r(varlist)',
 	by(a01) fast;
 #delimit cr
 
@@ -214,20 +209,24 @@ ds(a01 munitprice), not
 include "$pathdo/attachlabels.do"
 
 *Run factor analysis to create ag wealth index
-ds(a01 sample_type hhagasset), not
-factor kaste- harvester, pcf
+qui ds(a01 sample_type hhagasset), not
+qui factor kaste-harvester, pcf
 rotate
-predict agwealth
+predict agAssetWealth
+alpha kaste-harvester
 
 * Plot loadings for review
-loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
+qui loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ title(Household wealth ag index loadings)
-graph export "$pathgraph/agwealthLoadings.png", as(png) replace
-scree, title(Scree plot of ag wealth index)
-graph export "$pathgragh/agwealthScree.png", as(png) replace
+qui graph export "$pathgraph/agwealthLoadings.png", as(png) replace
+qui scree, title(Scree plot of ag wealth index)
+qui graph export "$pathgragh/agwealthScree.png", as(png) replace
 
+* Merge durables with agricultural implement assets
 merge 1:1 a01  using "$pathout/hhdurables.dta", gen(assets)
+
 compress
 save "$pathout/hhpc.dta", replace
+erase "$pathout/hhdurables.dta"
