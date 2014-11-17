@@ -17,6 +17,12 @@
 * Load the data for negative shocks
 use "$pathin\038_mod_t1_male.dta", clear
 
+*Merge in hh chars to make dummies complete
+* Merge in Module A which contains information on the geographic location
+merge m:1 a01 using "$pathout\hhchar.dta"
+drop if _merge==2
+drop _merge
+
 * Look at shock variables; For sorted tabulations (*ssc install tab_chi)
 tabsort t1_02 t1_05 if inlist(t1_10, 1, 2)
 
@@ -41,7 +47,7 @@ egen shkLossTot = total(t1_07), by(a01)
 la var shkLossTot "Total value of loss due to shocks"
 
 egen shkLossTotR = total(t1_07) if inlist(t1_05, 2010, 2011, 2012), by(a01)
-replace shkLossTotR = 0 if shkLossTotR==.
+*replace shkLossTotR = 0 if shkLossTotR==.
 la var shkLossTot "Total value of loss due to shocks in last 5 years"
 la var shkLossTotR "Total value of loss due to shocks in last 3 years"
 
@@ -144,19 +150,49 @@ keep `r(varlist)'
 
 * Collapse down to hh
 include "$pathdo/copylabels.do"
+qui ds(a01 sample_type), not
+collapse (max) `r(varlist)', by(a01)
+include "$pathdo/attachlabels.do"
+
+* Save as negative shocks
+save "$pathout/negshocks.dta", replace
+
+** Load positive shock data **
+use "$pathin/039_mod_t2_male.dta", clear
+
+* Create positive shock variables
+g byte edshkpos = inlist(t2_02, 9, 10, 26) & inlist(t2_07, 1, 2) & t2_03 == 1
+la var edshkpos "Positive educational income shock"
+egen edshkTot = total(t2_06) if edshkpos == 1, by(a01)
+la var edshkTot "Total value of educational shock"
+
+* Replace zeros with stipend values listed in question (100 taka)
+replace edshkTot = 100 if edshkTot == 0 & inlist(t2_02, 9)
+
+g byte finshkpos = inlist(t2_02, 2, 3, 4, 5) & inlist(t2_07, 1, 2) & t2_03 == 1
+la var finshkpos "Positive financial shock not employment related"
+egen finshkTot = total(t2_06) if finshkpos == 1, by(a01)
+la var finshkTot "Total value of financial shock"
+
+g byte bizshkpos = inlist(t2_02, 1, 6) & inlist(t2_07, 1, 2) & t2_03 == 1
+la var bizshkpos "Positive income shock related to employment or business"
+egen bizshkTot = total(t2_06) if bizshkpos == 1, by(a01)
+la var bizshkTot "Total value of business/employment shock"
+
+qui ds (t2*), not
+keep `r(varlist)'
+
+* Collapse down to hh
+include "$pathdo/copylabels.do"
 ds(a01 sample_type), not
 collapse (max) `r(varlist)', by(a01)
 include "$pathdo/attachlabels.do"
 
+* Merge with negative shock data
+merge 1:1 a01 using "$pathout/negshocks.dta", gen(shock_merge)
 
-* Merge in Module A which contains information on the geographic location
-merge m:1 a01 using "$pathin\001_mod_a_male.dta"
-drop if _merge==2
-drop _merge
 
-* Merge in female surveys
-merge m:1 a01 using "$pathin\002_mod_a_female.dta", force
-
+bob
 * What do these look like on a district level? *Do any appear to be village-wide?
 foreach x of varlist *shk {
 	tab district_name `x', mi
