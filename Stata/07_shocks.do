@@ -13,7 +13,10 @@
 
 * Exploratory data analysis
 * date: 11/4/2014
+capture log close
+log using "$pathlog/07_shocks", replace
 
+set more off
 * Load the data for negative shocks
 use "$pathin\038_mod_t1_male.dta", clear
 
@@ -28,7 +31,8 @@ tabsort t1_02 t1_05 if inlist(t1_10, 1, 2)
 
 /* Major shocks are related to medical expenses due to illness or injury (30%); Food price
 shocks were common in 2011 and slightly in 2012. The 2007 floods appear to have
-affected about 207 households asset base. May be interesting to see how they've recovered.*/
+affected about 207 households asset base. May be interesting to see how they've recovered.
+*/
 
 * what is the timing of shocks? Most med expenses incurred in Feb through October
 tab t1_02 t1_04 if inlist(t1_10, 1, 2) & t1_05 == 2011
@@ -58,6 +62,13 @@ g byte healthshkR = inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & inlist(t1_
 la var healthshk "Loss of income or medical expenses due to illness or injury"
 la var healthshkR "Loss of income or medical expenses due to illness or injury in last 3 years"
 
+* Because of frequency create annual health shock dummy
+foreach x of numlist 2007(1)2011 {
+	g byte healthshk`x' =inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & t1_05 == `x'
+	la var healthshk`x' "Health shock in `x'"
+	}
+*end
+
 * See if health shocks are recurring in same HH
 foreach x of numlist 2007(1)2012 {
 	g tmpshk`x' = inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & t1_05 == `x'
@@ -70,8 +81,10 @@ drop tmpshk*
 * Any flood related shock (includes loss of livestock and crops specifically due to flood)
 g byte floodshk = inlist(t1_02, 6, 9, 11, 14, 16) & inlist(t1_10, 1, 2)
 g byte floodshkR = inlist(t1_02, 6, 9, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
+g byte floodshk2007 = inlist(t1_02, 6, 9, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2007)
 la var floodshk "Any flood related shock"
 la var floodshkR "Any flood related shock in last 3 years"
+la var floodshk2007 "Flood related shock in 2007 (Cyclone Sidr)"
 
 * Ag shocks for any reason (includes livestock and crops)
 g byte agshk = inlist(t1_02, 9, 10, 11, 12, 13) & inlist(t1_10, 1, 2) 
@@ -143,7 +156,7 @@ la var goodcopeR "Good coping strategy in last 3 years"
 la var badcopeR "Bad coping strategy in last 3 years"
 la var loancopeNGOR "To cope take NGO loan in last 3 years"
 la var loancopeMahajanR "To cope take money lender loan in last 3 years"
-	
+
 * Collapse data down to household level making everything wide
 qui ds (t1*), not
 keep `r(varlist)'
@@ -192,11 +205,11 @@ include "$pathdo/attachlabels.do"
 merge 1:1 a01 using "$pathout/negshocks.dta", gen(shock_merge)
 
 
-bob
 * What do these look like on a district level? *Do any appear to be village-wide?
 foreach x of varlist *shk {
 	tab district_name `x', mi
 }
 *end
 
-
+ log2html "$pathlog/07_shocks", replace
+ log close
