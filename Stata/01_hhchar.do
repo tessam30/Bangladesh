@@ -269,3 +269,4 @@ compress
 * Save
  save "$pathout/hhchar.dta", replace
  log2html "$pathlog/hhchar", replace
+ log close
