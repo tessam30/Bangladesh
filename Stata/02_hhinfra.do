@@ -196,3 +196,4 @@ graph export "$pathgragh/infraScree.png", as(png) replace
 * Save the hhinfra dataset
 save "$pathout/hhinfra.dta", replace
 log2html "$pathlog/hhinfra", replace
+log close
