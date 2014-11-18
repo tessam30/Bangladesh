@@ -231,3 +231,4 @@ compress
 save "$pathout/hhpc.dta", replace
 erase "$pathout/hhdurables.dta"
 log2html "$pathlog/03_hhpc", replace
+log close
