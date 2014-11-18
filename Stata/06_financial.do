@@ -92,3 +92,5 @@ compress
 save "$pathout/finances.dta", replace
 erase "$pathout/savings.dta"
 
+log2html "$pathlog/06_financial", replace
+log close
