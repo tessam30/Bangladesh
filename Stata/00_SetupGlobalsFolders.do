@@ -15,6 +15,7 @@
  3. Sets global macros for the study; These are used through the do files.
  4. TODO -- Script DOES NOT copy in raw data at this point.
  5. TODO -- Create program folder for calling custom programs.
+ 6. TODO -- Convert setup .do file into a program (inputs are project path & folder name)
 */
 	
 * install the confirm directory ado if not already installed
@@ -50,7 +51,7 @@ foreach dir in `pFolder' {
 
 * Run initially to set up folder structure
 * Choose your folders to set up as the local macro `folders'
-local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python
+local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python Programs
 foreach dir in `folders' {
 	confirmdir "`dir'"
 	if `r(confirmdir)'==170 {
@@ -79,6 +80,7 @@ global pathraw "`dir'\Rawdata"
 global pathexport "`dir'\Export"
 global pathR "`dir'\R"
 global pathPython "`dir'\Python"
+global pathProgram "`dir'\Program"
 global pathPdrive "P:\GeoCenter\GIS\Projects\Bangladesh"
 
 * Project macros are defined as:
