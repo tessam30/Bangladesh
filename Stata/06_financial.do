@@ -13,7 +13,7 @@
 
 clear
 capture log close
-log using "$pathlog/savings", replace
+log using "$pathlog/06_financial", replace
 set more off
 
 * load savings data
