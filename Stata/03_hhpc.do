@@ -12,7 +12,7 @@
 */
 clear
 capture log close
-log using "$pathlog/hhpc", replace
+log using "$pathlog/03_hhpc",  replace
 set more off
 
 /* Load module with information on household assets. */
@@ -232,3 +232,4 @@ save "$pathout/hhpc.dta", replace
 erase "$pathout/hhdurables.dta"
 log2html "$pathlog/03_hhpc", replace
 log close
+
