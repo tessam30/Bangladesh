@@ -1,12 +1,11 @@
-
 <html>
 <body>
 <pre>
----------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <span class=result>&lt;unnamed&gt;</span>
-<span class=result>       </span>log:  <span class=result>U:\Bangladesh\Log/hhinfra.smcl</span>
+<span class=result>       </span>log:  <span class=result>U:\Bangladesh\Log/02_hhinfra.smcl</span>
 <span class=result>  </span>log type:  <span class=result>smcl</span>
-<span class=result> </span>opened on:  <span class=result>19 Nov 2014, 16:07:28</span>
+<span class=result> </span>opened on:  <span class=result>20 Nov 2014, 09:51:43</span>
 <br><br>
 <span class=input>. set more off</span>
 <br><br>
