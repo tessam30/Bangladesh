@@ -6,12 +6,12 @@
 # Modified: 2014/11/05
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
-# Ado(s):	
+# Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
 # Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
 #-------------------------------------------------------------------------------
 */
 capture log close
-log using "$pathlog/hhchar", replace
+log using "$pathlog/01_hhchar", replace
 
 * Load household survey module of all individuals. Collapse down for hh totals.
 use "$pathin\003_mod_b1_male.dta", clear
@@ -267,6 +267,13 @@ notes educAdult: missing values indicate that no member of household was over 25
 compress
 
 * Save
- save "$pathout/hhchar.dta", replace
- log2html "$pathlog/hhchar", replace
- log close
+save "$pathout/hhchar.dta", replace
+
+* Keep a master file of only household id's for missing var checks
+keep a01
+save "$pathout\hhid.dta", replace
+
+
+* Create an html file of the log for internet sharability
+log2html "$pathlog/01_hhchar", replace
+log close
