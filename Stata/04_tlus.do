@@ -13,7 +13,7 @@
 
 clear
 capture log close
-log using "$pathlog/04_TLUs", replace
+log using "$pathlog/04_TLUs",  replace
 set more off
 
 /* Load module with information on household assets. */
@@ -115,6 +115,8 @@ drop cattleVal horsesVal mulesVal assesVal sheepVal chxVal TLUcattle TLUsheep TL
 
 * Compress & save
 save "$pathout/hhTLU_pc.dta", replace
-log2html using "$pathlog/04_TLUs", replace
+log2html "$pathlog/04_TLUs", replace
 log close
 	
+
+
