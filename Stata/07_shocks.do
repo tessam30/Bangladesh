@@ -20,14 +20,8 @@ set more off
 * Load the data for negative shocks
 use "$pathin\038_mod_t1_male.dta", clear
 
-*Merge in hh chars to make dummies complete
-* Merge in Module A which contains information on the geographic location
-merge m:1 a01 using "$pathout\hhchar.dta"
-drop if _merge==2
-drop _merge
-
 * Look at shock variables; For sorted tabulations (*ssc install tab_chi)
-tabsort t1_02 t1_05 if inlist(t1_10, 1, 2)
+tabsort t1_02 t1_05 if inlist(t1_10, 1, 2), mi
 
 /* Major shocks are related to medical expenses due to illness or injury (30%); Food price
 shocks were common in 2011 and slightly in 2012. The 2007 floods appear to have
@@ -126,6 +120,8 @@ foreach x of varlist healthshk floodshk agshk assetshk finshk priceshk {
 *end
 
 /* Coping Mechanisms - What are good v. bad coping strategies? From (Heltberg et al., 2013)
+	http://siteresources.worldbank.org/EXTNWDR2013/Resources/8258024-1352909193861/
+	8936935-1356011448215/8986901-1380568255405/WDR15_bp_What_are_the_Sources_of_Risk_Oviedo.pdf
 	Good Coping:: use of savings, credit, asset sales, additional employment, 
 					migration, and assistance
 	Bad Coping : increases vulnerabiliy* compromising health and edudcation 
@@ -204,12 +200,26 @@ include "$pathdo/attachlabels.do"
 * Merge with negative shock data
 merge 1:1 a01 using "$pathout/negshocks.dta", gen(shock_merge)
 
+* Merge collapsed data back with 
+* Merge in hh roster (just hhid) to compute zeros for missing households (are they missing at random?)
+merge m:1 a01 using "$pathout\hhid.dta", gen(hhID_merge)
+merge 1:1 a01 using "$pathin/001_mod_a_male.dta", gen(miss_merge)
+bob
 
-* What do these look like on a district level? *Do any appear to be village-wide?
-foreach x of varlist *shk {
-	tab district_name `x', mi
-}
+/* NOTE: Assuming that missing information is equivalent to zero; Validate for all vars */
+* Note missingness in variables: Mostly related to asset losses
+mdesc 
+
+* Replace missing information with zeros noting potential introduction of bias here.
+foreach x of varlist _all {
+	replace `x' = 0 if `x' == .
+	}
 *end
 
- log2html "$pathlog/07_shocks", replace
- log close
+* Add a note to dataset
+notes: 2,976 were not included in shock module (unsure why). Setting to zero for now.
+
+* Save
+save "$pathout/shocks.dta", replace
+log2html "$pathlog/07_shocks", replace
+log close
