@@ -13,7 +13,7 @@
 
 clear
 capture log close
-log using "$pathlog/hhinfra", replace
+log using "$pathlog/02_hhinfra", replace
 set more off
 
 /* Load module with information on household quality. */
@@ -154,6 +154,7 @@ drop _merge
 #delimit cr
 
 * Standardize vector of data for use in PCA; Replace missing values with mean values
+* Is this ok to do w/ 0/1 variables? Check robustness
 foreach x of local infra {
 	egen mean`x' = mean(`x')
 	replace `x' = mean`x' if `x' ==.
@@ -161,6 +162,7 @@ foreach x of local infra {
 	drop mean`x'
 }
 *
+notes: Check robustness PCA on infrastructure of replacing missing values with averages.
 
 *Now run factor analysis retaining only principal component factors
 factor brickTinHome dfloor electricity garbage newHome /* 
@@ -195,5 +197,6 @@ graph export "$pathgragh/infraScree.png", as(png) replace
 
 * Save the hhinfra dataset
 save "$pathout/hhinfra.dta", replace
-log2html "$pathlog/hhinfra", replace
+log2html "$pathlog/02_hhinfra", replace
 log close
+
