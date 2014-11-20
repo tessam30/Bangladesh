@@ -2,11 +2,11 @@
 <html>
 <body>
 <pre>
----------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------
       name:  <span class=result>&lt;unnamed&gt;</span>
-<span class=result>       </span>log:  <span class=result>U:\Bangladesh\Log/hhchar.smcl</span>
+<span class=result>       </span>log:  <span class=result>U:\Bangladesh\Log/01_hhchar.smcl</span>
 <span class=result>  </span>log type:  <span class=result>smcl</span>
-<span class=result> </span>opened on:  <span class=result>19 Nov 2014, 16:00:38</span>
+<span class=result> </span>opened on:  <span class=result>20 Nov 2014, 09:46:40</span>
 <br><br>
 <span class=input>. </span>
 <span class=input>. * Load household survey module of all individuals. Collapse down for hh totals.</span>
@@ -475,7 +475,6 @@ file U:\Bangladesh\Dataout/hhchar.dta saved
 <span class=input>. keep a01</span>
 <br><br>
 <span class=input>. save "$pathout\hhid.dta", replace</span>
-(note: file U:\Bangladesh\Dataout\hhid.dta not found)
 file U:\Bangladesh\Dataout\hhid.dta saved
 <br><br>
 <span class=input>. </span>
