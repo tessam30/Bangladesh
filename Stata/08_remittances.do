@@ -48,12 +48,13 @@ foreach x of varlist snetEduc snetAge snetAllow snetAid {
 
 
 *NEW code *here*
-#delimit ;
 * TODO: Add code to copy and reapply value labels.
 include "$pathdo/copylabels.do"
-collapse (max) snetValue snetEduc snetAge snetAllow snetAid snetEducValue snetAgeValue snetAllowValue snetAidValue, by(a01)
-include "$pathdo/attachlabels.do"
+#delimit ;
+collapse (max) snetValue snetEduc snetAge snetAllow snetAid snetEducValue 
+		snetAgeValue snetAllowValue snetAidValue, by(a01);
 # delimit cr
+include "$pathdo/attachlabels.do"
 
 * Save safety nets and move to migration remmitances
 save "$pathout/safetynets.dta", replace
@@ -135,3 +136,17 @@ include "$pathdo/attachlabels.do"
 merge 1:1 a01 using "$pathout/safetynets.dta", gen(snets_merge)
 merge 1:1 a01 using "$pathout/migration.dta", gen(mig_merge)
 merge 1:1 a01 using "$pathout/remitIn.dta", gen(remit_merge)
+
+save "$pathout/remittances.dta", replace
+
+local efiles safetynets migration remitIn
+cd "$pathout"
+foreach x of local efiles {
+	capture findfile `x'.dta
+	if _rc!=601 {
+		erase "$pathout/`x'.dta"
+		display in red "`x' removed from data out folder"
+		}
+	else disp in yellow "`x' already removed."
+}
+*end
