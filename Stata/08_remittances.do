@@ -164,3 +164,6 @@ foreach x of local efiles {
 	else disp in yellow "`x' already removed."
 }
 *end
+
+log2html "$pathlog/08_remittances", replace
+log close
