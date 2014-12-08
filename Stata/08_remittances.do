@@ -46,7 +46,6 @@ foreach x of varlist snetEduc snetAge snetAllow snetAid {
 	}
 *end
 
-
 * Collapse and copy labels
 include "$pathdo/copylabels.do"
 #delimit ;
@@ -112,6 +111,17 @@ include "$pathdo/attachlabels.do"
 
 save "$pathout/remitIn.dta", replace
 
+* Calculate other income sources
+clear
+use "$pathin/044_mod_v4_male.dta"
+
+* Calculate total value of other income streams
+clonevar landRent = v4_01
+egen otherInc = rsum2(v4_01 v4_02 v4_03 v4_04 v4_05 v4_06 v4_07 v4_08 v4_09 v4_10 v4_11 v4_12 v4_13)
+la var otherInc "Total value of other income"
+keep a01 landRent otherInc
+save "$pathout/otherInc.dta", replace
+
 * Load in remittances out data
 use "$pathin/043_mod_v3_male.dta", replace
 
@@ -135,10 +145,15 @@ include "$pathdo/attachlabels.do"
 merge 1:1 a01 using "$pathout/safetynets.dta", gen(snets_merge)
 merge 1:1 a01 using "$pathout/migration.dta", gen(mig_merge)
 merge 1:1 a01 using "$pathout/remitIn.dta", gen(remit_merge)
+merge 1:1 a01 using "$pathout/otherInc.dta", gen(othInc_merge)
 
+* No merging errors, dump variables
+drop *_merge
+
+compress
 save "$pathout/remittances.dta", replace
 
-local efiles safetynets migration remitIn
+local efiles safetynets migration remitIn otherInc
 cd "$pathout"
 foreach x of local efiles {
 	capture findfile `x'.dta
