@@ -47,8 +47,7 @@ foreach x of varlist snetEduc snetAge snetAllow snetAid {
 *end
 
 
-*NEW code *here*
-* TODO: Add code to copy and reapply value labels.
+* Collapse and copy labels
 include "$pathdo/copylabels.do"
 #delimit ;
 collapse (max) snetValue snetEduc snetAge snetAllow snetAid snetEducValue 
