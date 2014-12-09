@@ -1,0 +1,94 @@
+/*-------------------------------------------------------------------------------
+# Name:		09_foodSecurity
+# Purpose:	Process household data for food security modules
+# Author:	Tim Essam, Ph.D.
+# Created:	2014/12/08
+# Modified: 2014/12/08
+# Owner:	USAID GeoCenter | OakStream Systems, LLC
+# License:	MIT License
+# Ado(s):	
+# Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
+#-------------------------------------------------------------------------------
+*/
+clear
+capture log close
+log using "$pathlog/09_foodSecurity", replace
+use "$pathin/048_mod_w4_female.dta"
+
+* First consider illnesses in the household
+g byte ill = w4_01 == 1
+g byte illHoh = (w4_01 ==1 & mid == 1)
+la var illHoh "Hoh was ill in last 4 weeks"
+bys a01: egen illCount = total(ill)
+la var ill "At least one member of hh was ill"
+la var illCount "Total casss in hh over last 4 weeks"
+
+* Diarrhea reporting
+g byte diarrhea = w4_07 == 1
+la var diarrhea "hh reported at least 1 case of diarrhea"
+bys a01: egen diarrheaCount = total(diarrhea)
+la var diarrheaCount "Total cases of diarrhea in HH"
+
+* How much time was missed due to illness
+g weeksAbsent = .
+replace weeksAbsent = 0 if inlist(w4_03, 0, 99) 
+replace weeksAbsent = 1 if inlist(w4_03, .5, 1, 2, 3, 4, 5, 6, 7)
+replace weeksAbsent = 2 if inlist(w4_03, 8, 9, 10, 11, 12, 13, 14)
+replace weeksAbsent = 3 if inlist(w4_03, 15, 16, 18, 19, 20, 21)
+replace weeksAbsent = 4 if inlist(w4_03, 22, 23 25, 26, 27, 28, 30, 32, 36)
+replace weeksAbsent = 5 if inlist(w4_03, 60, 77, 90, 150, 240, 360, 365, 1095, 1825)
+
+la var weeksAbsent "Max time lost due to illness (15+ only)"
+tab weeksAbsent
+
+g weeksAbsentHead = weeksAbsent if mid == 1
+la var weeksAbsentHead "Hoh time lost due to illness"
+
+* Symptoms if illnesses
+g byte feverWeightLoss = (w4_04==1 & w4_05==1)
+la var feverWeightLoss "hh member had fever and weight loss"
+
+g byte weightLoss = w4_04 == 1
+g byte fever = w4_05 == 1
+la var weightLoss "hh member reported weight loss"
+la var fever "hh member reported persistent fever"
+
+* Collapse down to hh level being careful to take max/aves where needed
+include "$pathdo/copylabels.do"
+
+#delimit ;
+collapse (max)ill illHoh illCount diarrhea diarrheaCount mid
+		  weeksAbsentHead feverWeightLoss weightLoss fever
+		  weeksAbsent, by(a01);
+# delimit cr
+include "$pathdo/attachlabels.do"
+
+* Calculate percent of houshole that was ill
+g illShare = ill/mid
+la var illShare "Share of household members reporting illness"
+tab illCount
+
+* Label time off values
+la define abs 0 "0" 1 "1" 2 "2" 3 "3" 4 "4" 5 "4+"
+la val weeksAbsent abs
+
+* Save health data
+save "$pathout/health.dta", replace
+
+* Load food security module
+use "$pathin/051_mod_x3_female.dta", clear
+
+* Food security related measures
+g byte foodLack = x3_01 == 1
+la var foodLack "lack of resources to get food in last 4 weeks"
+
+* Construct a diet diversity index using aggregates of consumption of different foods
+local foodlist bread rice tubers cereal veg fruit pulse egg dairy meat poultry fish oil sweet cond nut tobacco
+local i = 1
+foreach x of local foodlist {
+    g `x' = x3_07_`i'
+    la var `x' "hh consumed `x' in last 7 days"
+    local i = `i' + 1 
+  }
+
+
