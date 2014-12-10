@@ -3,7 +3,7 @@ remove(list = ls())
 
 # Load libraries & set working directory
 
-libs <- c ("reshape", "ggplot2", "dplyr")
+libs <- c ("reshape", "ggplot2", "dplyr", "RColorBrewer")
 
 # Load required libraries
 lapply(libs, require, character.only=T)
@@ -30,13 +30,22 @@ clr = "YlOrRd"
 mdata <- melt(d, id=c("a01","FCS"))
 names(mdata) <- c("ID", "FCS", "Food", "Days")
 
+# Check color palettes available.
+display.brewer.all()
 
 # Create stacked area plot using ggplot2
 c <- ggplot(mdata, aes(FCS, Days, group = Food, colour = Food))
-c + stat_smooth(se = FALSE) +labs(x ="Food Consumption Score", title = "Bangladesh: Food Consumption Scores by Food Groups", 
+c + stat_smooth(se = FALSE, size=1) +labs(x ="Food Consumption Score", title = "Bangladesh: Food Consumption Scores by Food Groups", 
 		y = "Number of days food was consumed") + scale_y_continuous(breaks = c(1:7.5)) + scale_colour_brewer(palette="Set2")
 
 
+
++ scale_fill_brewer(palette = clr ) +
+		theme(legend.position = "top", legend.title=element_blank(),
+		panel.background=element_rect(fill="white"), axis.ticks.y=element_blank(),
+		axis.text.y  = element_text(hjust=1, size=10, colour = dblueL), axis.ticks.x=element_blank(),
+		axis.text.x  = element_text(hjust=1, size=10, colour = dblueL),
+		axis.title.x = element_text(colour=dblueL, size=8),
 
 
 
