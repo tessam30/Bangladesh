@@ -173,3 +173,56 @@ mdata %>%
   layer_model_predictions(model = "loess", se = FALSE, stroke = ~Food) %>%
   add_axis("x", title = "Food Consumption Score") %>%
   add_axis("y", title = "Consumed (days/week)")
+
+
+################################
+# Create diet diversity graphs #
+################################
+
+# Clear the workspace
+remove(list = ls())
+
+# Load dietary diversity data for another dimension of food security baseline
+setwd(wd)
+library(plyr)
+
+# Set working directory again
+wd <- c("C:/Users/t/Box Sync/Bangladesh/Export")
+setwd(wd)
+
+# Load data and rename veg to vegetables
+dd <- read.csv("diet.diversity.csv", header = T)
+
+# Lab RGB colors
+redL     <- c("#B71234")
+dredL   <- c("#822443")
+dgrayL   <- c("#565A5C")
+lblueL   <- c("#7090B7")
+dblueL 	<- c("#003359")
+lgrayL	<- c("#CECFCB")
+dpi.out = 500
+
+names(dd) <- c("Diet", "Division", "District", "Upazila")
+
+# Plot density of dietary diversity by District & Division
+
+c <- ggplot(dd, aes(Diet, fill = Division)) + facet_wrap(Division ~ District)
+pp <- c + geom_density(aes(y = ..count..)) + labs(x ="Number of different foods consumed (dotted line represents national average)", title = "Bangladesh Diet Diversity Score Distributions", 
+                                                  y = "Number of Households", colour = lgrayL) + geom_vline(xintercept=c(28,42), linetype="dotted", size = 1) +
+  annotate("rect", xmin = 0, xmax = 28, ymin = 0, ymax = 60,
+           alpha = .175) + annotate("rect", xmin = 28, xmax = 42, ymin = 0, ymax = 60,  alpha = 0.075) +
+  scale_x_continuous(breaks = seq(0, 16, by = 2), limits = c(0, 17), expand = c(0,0)) +
+  scale_y_continuous(breaks = c(20, 40 ,60), limits = c(0, 60), expand = c(0,0)) +
+  theme(legend.position = "top", legend.title=element_blank(), panel.border = element_blank(), legend.key = element_blank(),
+        panel.background=element_rect(fill="white"), axis.ticks.y=element_blank(), 
+        #panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.y  = element_text(hjust=0, size=6, colour = dgrayL), axis.ticks.x=element_blank(),
+        axis.text.x  = element_text(hjust=0, size=6, colour = dgrayL), panel.margin = unit(1.15, "lines"),
+        axis.title.x = element_text(colour=dgrayL , size=11), strip.background=element_rect(colour="white", fill="white"),
+        axis.title.y=element_text(vjust=1.5, colour = dgrayL)) +  scale_fill_brewer(palette = "Pastel2" ) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) + geom_vline(aes(xintercept=mean(Diet, na.rm=T)),   
+                                                                               # Ignore NA values for mean
+                                                                               color=dgrayL, linetype="dashed", size=0.5)
+pp
+setwd("C:/Users/t/Box Sync/Bangladesh/Graph/")
+ggsave(pp, filename = paste("Diet.Diversity", ".png"), width=18, height=10, dpi = dpi.out)
