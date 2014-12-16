@@ -160,12 +160,14 @@ g oilFCS = oil_days * 0.5
 egen FCS = rsum2(staplesFCS pulseFCS vegFCS fruitFCS meatFCS milkFCS sugarFCS oilFCS)
 sum *FCS
 assert FCS <= 112
+la var FCS "Food Consumption Score"
 
 * Clone FCS and recode based on Bangladesh thresholds
 clonevar FCS_categ = FCS 
 recode FCS_categ (0/28 = 0) (28.5/42 = 1) (42.1/53 = 2) (53/112 = 3)
 lab def fcscat 0 "Poor" 1 " Borderline" 2 " Acceptable low" 3 "Acceptable high"
 lab val FCS_categ fcscat
+la var FCS_categ "Food consumption score category"
 tab FCS_cat, mi
 
 
@@ -181,24 +183,31 @@ foreach x of varlist staples_days pulse_days veg_days fruit_days meat_days milk_
 	}
 *end
 
-
 * Create a graphic that shows the composition of diet based on FCS; 
 /* Need to reshape the data so that each food category is listed by FCS score
 Will do this in R to generate nice looking ggplots using ggplot
-(d, aes(x=FCS, y=val, group=var, fill=var)) + geom_area(position="fill")" */
+(d, aes(x=FCS, y=val, group=var, fill=var)) + geom_area(position="fill")"
+ */
+ 
+ * Merge in geographic data 
+merge 1:1 a01 using $pathin/001_mod_a_male.dta
+ 
 preserve
-keep staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days FCS a01
-order FCS staples_days meat_days veg_days oil_days sugar_days fruit_days pulse_days milk_days a01
-export delimited using "$pathexport\food.consumption.score.csv", replace 
+keep staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days FCS a01 div_name District_Name Upazila_Name
+order FCS staples_days meat_days veg_days oil_days sugar_days fruit_days pulse_days milk_days a01 div_name District_Name Upazila_Name
 rename *_days* *
+export delimited using "$pathexport\food.consumption.score.csv", replace 
 restore
 
+* Create an export for making diet diversity plots in R
 preserve
-keep staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days FCS a01
-collapse (mean) staples_days meat_days veg_days oil_days sugar_days fruit_days pulse_days milk_days, by(FCS)
-order FCS staples_days meat_days veg_days oil_days sugar_days fruit_days pulse_days milk_days
-rename *_days* *
-export delimited using "$pathexport\food.consumption.score.collapsed.csv", replace 
+keep dietDiversity a01 div_name District_Name Upazila_Name
+order dietDiversity a01 div_name District_Name Upazila_Name
+export delimited using "$pathexport\diet.diversity.csv", replace 
 restore
+
+keep sample_type foodLack dietDiversity FCS FCS_categ cereal_days tubers_days staples_days pulse_days /*
+*/ veg_days fruit_days meat_days milk_days sugar_days oil_days a01
+save "$pathout/foodSecurity.dta", replace
 
 
