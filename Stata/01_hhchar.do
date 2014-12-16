@@ -124,6 +124,9 @@ g byte under15t = b1_02<15
 egen under15 = total(under15t), by(a01)
 la var under15 "number of hh members under 15"
 egen under15male = total(under15t) if male==1, by(a01)
+egen under15male_r = max(under15male), by(a01) //ac
+replace under15male = under15male_r //ac
+drop under15male_r //ac
 la var under15male "number of hh male members under 15"
 recode under15male (. = 0) if under15male==.
 
@@ -131,6 +134,9 @@ recode under15male (. = 0) if under15male==.
 g byte under24t = b1_02<24
 egen under24 = total(under24t), by(a01)
 egen under24male = total(under24t) if male==1, by(a01)
+egen under24male_r = max(under24male), by(a01) //ac
+replace under24male = under24male_r //ac
+drop under24male_r //ac
 recode under24male (. = 0) if under24male==.
 la var under24 "number of hh members under 24"
 la var under24male "number of hh male members under 24"
@@ -188,6 +194,9 @@ replace educ = 6 if inlist(b1_08, 76)
 
 * Create variable reflect the max education in the household for those 25+
 egen educAdult = max(educ) if b1_02>24, by(a01)
+egen educAdult_r = max(educAdult), by(a01) //ac
+replace educAdult = educAdult_r  //ac
+drop educAdult_r  //ac
 
 g educHoh = educ if hoh==1
 la var educAdult "Highest adult education in household"
