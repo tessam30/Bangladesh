@@ -82,7 +82,7 @@ la var sexRatio "Number of males divided by females in HH"
 The dependency ratio is defined as the ratio of the number of members in the age groups 
 of 0–14 years and above 60 years to the number of members of working age (15–60 years). 
 The ratio is normally expressed as a percentage (data below are multiplied by 100 for pcts.*/
-g byte numDepRatio = (b1_02<15 | b1_02>60) 
+g byte numDepRatio = (b1_02<15 | b1_02>64) 
 g byte demonDepRatio = numDepRatio!=1 
 egen totNumDepRatio = total(numDepRatio), by(a01)
 egen totDenomDepRatio = total(demonDepRatio), by(a01)
