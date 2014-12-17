@@ -97,15 +97,15 @@ la var depRatio "Dependency Ratio"
 drop numDepRatio demonDepRatio totNumDepRatio totDenomDepRatio
 
 /* Household Labor Shares */
-g byte hhLabort = (b1_02>= 15 & b1_02<60)
+g byte hhLabort = (b1_02>= 12 & b1_02<60)
 egen hhlabor = total(hhLabort), by(a01)
 la var hhlabor "hh labor age>11 & < 60"
 
-g byte mlabort = (b1_02>= 15 & b1_02<60 & b1_01 == 1)
+g byte mlabort = (b1_02>= 12 & b1_02<60 & b1_01 == 1)
 egen mlabor = total(mlabort), by(a01)
 la var mlabor "hh male labor age>11 & <60"
 
-g byte flabort = (b1_02>= 15 & b1_02<60 & b1_01 == 2)
+g byte flabort = (b1_02>= 12 & b1_02<60 & b1_01 == 2)
 egen flabor = total(flabort), by(a01)
 la var flabor "hh female labor age>11 & <60"
 drop hhLabort mlabort flabort
