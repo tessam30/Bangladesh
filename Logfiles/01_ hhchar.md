@@ -6,7 +6,7 @@
       name:  <span class=result>&lt;unnamed&gt;</span>
 <span class=result>       </span>log:  <span class=result>U:\Bangladesh\Log/01_hhchar.smcl</span>
 <span class=result>  </span>log type:  <span class=result>smcl</span>
-<span class=result> </span>opened on:  <span class=result>20 Nov 2014, 09:46:40</span>
+<span class=result> </span>opened on:  <span class=result>17 Dec 2014, 08:04:13</span>
 <br><br>
 <span class=input>. </span>
 <span class=input>. * Load household survey module of all individuals. Collapse down for hh totals.</span>
@@ -116,7 +116,7 @@
 <span class=input>&gt; The dependency ratio is defined as the ratio of the number of members in the age groups </span>
 <span class=input>&gt; of 014 years and above 60 years to the number of members of working age (1560 years). </span>
 <span class=input>&gt; The ratio is normally expressed as a percentage (data below are multiplied by 100 for pcts.*/</span>
-<span class=input>. g byte numDepRatio = (b1_02&lt;15 | b1_02&gt;60) </span>
+<span class=input>. g byte numDepRatio = (b1_02&lt;15 | b1_02&gt;64) </span>
 <br><br>
 <span class=input>. g byte demonDepRatio = numDepRatio!=1 </span>
 <br><br>
@@ -129,10 +129,10 @@
 <span class=input>. assert hhSize == totNumDepRatio+totDenomDepRatio</span>
 <br><br>
 <span class=input>. g depRatio = (totNumDepRatio/totDenomDepRatio)*100 if totDenomDepRatio!=.</span>
-(203 missing values generated)
+(163 missing values generated)
 <br><br>
 <span class=input>. recode depRatio (. = 0) if totDenomDepRatio==0</span>
-(depRatio: 203 changes made)
+(depRatio: 163 changes made)
 <br><br>
 <span class=input>. la var depRatio "Dependency Ratio"</span>
 <br><br>
@@ -142,21 +142,21 @@
 <br><br>
 <span class=input>. </span>
 <span class=input>. /* Household Labor Shares */</span>
-<span class=input>. g byte hhLabort = (b1_02&gt;= 15 &amp; b1_02&lt;60)</span>
+<span class=input>. g byte hhLabort = (b1_02&gt;= 12 &amp; b1_02&lt;60)</span>
 <br><br>
 <span class=input>. egen hhlabor = total(hhLabort), by(a01)</span>
 <br><br>
 <span class=input>. la var hhlabor "hh labor age&gt;11 &amp; &lt; 60"</span>
 <br><br>
 <span class=input>. </span>
-<span class=input>. g byte mlabort = (b1_02&gt;= 15 &amp; b1_02&lt;60 &amp; b1_01 == 1)</span>
+<span class=input>. g byte mlabort = (b1_02&gt;= 12 &amp; b1_02&lt;60 &amp; b1_01 == 1)</span>
 <br><br>
 <span class=input>. egen mlabor = total(mlabort), by(a01)</span>
 <br><br>
 <span class=input>. la var mlabor "hh male labor age&gt;11 &amp; &lt;60"</span>
 <br><br>
 <span class=input>. </span>
-<span class=input>. g byte flabort = (b1_02&gt;= 15 &amp; b1_02&lt;60 &amp; b1_01 == 2)</span>
+<span class=input>. g byte flabort = (b1_02&gt;= 12 &amp; b1_02&lt;60 &amp; b1_01 == 2)</span>
 <br><br>
 <span class=input>. egen flabor = total(flabort), by(a01)</span>
 <br><br>
@@ -167,19 +167,19 @@
 <span class=input>. </span>
 <span class=input>. * Male/Female labor share in hh</span>
 <span class=input>. g mlaborShare = mlabor/hhlabor</span>
-(353 missing values generated)
+(312 missing values generated)
 <br><br>
 <span class=input>. recode mlaborShare (. = 0) if hhlabor == 0</span>
-(mlaborShare: 353 changes made)
+(mlaborShare: 312 changes made)
 <br><br>
 <span class=input>. la var mlaborShare "share of working age males in hh"</span>
 <br><br>
 <span class=input>. </span>
 <span class=input>. g flaborShare = flabor/hhlabor</span>
-(353 missing values generated)
+(312 missing values generated)
 <br><br>
 <span class=input>. recode flaborShare (. = 0) if hhlabor == 0</span>
-(flaborShare: 353 changes made)
+(flaborShare: 312 changes made)
 <br><br>
 <span class=input>. la var flaborShare "share of working age females in hh"</span>
 <br><br>
@@ -194,10 +194,18 @@
 <span class=input>. egen under15male = total(under15t) if male==1, by(a01)</span>
 (14292 missing values generated)
 <br><br>
+<span class=input>. egen under15male_r = max(under15male), by(a01) //ac</span>
+(839 missing values generated)
+<br><br>
+<span class=input>. replace under15male = under15male_r //ac</span>
+(13453 real changes made)
+<br><br>
+<span class=input>. drop under15male_r //ac</span>
+<br><br>
 <span class=input>. la var under15male "number of hh male members under 15"</span>
 <br><br>
 <span class=input>. recode under15male (. = 0) if under15male==.</span>
-(under15male: 14292 changes made)
+(under15male: 839 changes made)
 <br><br>
 <span class=input>. </span>
 <span class=input>. * Number of hh members under 24</span>
@@ -208,8 +216,16 @@
 <span class=input>. egen under24male = total(under24t) if male==1, by(a01)</span>
 (14292 missing values generated)
 <br><br>
+<span class=input>. egen under24male_r = max(under24male), by(a01) //ac</span>
+(839 missing values generated)
+<br><br>
+<span class=input>. replace under24male = under24male_r //ac</span>
+(13453 real changes made)
+<br><br>
+<span class=input>. drop under24male_r //ac</span>
+<br><br>
 <span class=input>. recode under24male (. = 0) if under24male==.</span>
-(under24male: 14292 changes made)
+(under24male: 839 changes made)
 <br><br>
 <span class=input>. la var under24 "number of hh members under 24"</span>
 <br><br>
@@ -296,6 +312,14 @@
 <span class=input>. * Create variable reflect the max education in the household for those 25+</span>
 <span class=input>. egen educAdult = max(educ) if b1_02&gt;24, by(a01)</span>
 (14215 missing values generated)
+<br><br>
+<span class=input>. egen educAdult_r = max(educAdult), by(a01) //ac</span>
+(306 missing values generated)
+<br><br>
+<span class=input>. replace educAdult = educAdult_r  //ac</span>
+(13909 real changes made)
+<br><br>
+<span class=input>. drop educAdult_r  //ac</span>
 <br><br>
 <span class=input>. </span>
 <span class=input>. g educHoh = educ if hoh==1</span>
