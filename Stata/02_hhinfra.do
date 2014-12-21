@@ -70,7 +70,7 @@ la values cookFuel fuel
 la var cookFuel "Fuel used for cooking"
 
 * Binary for electric fuel sources 
-g byte electFuel = q_16 == 1
+g byte electcookFuel = q_16 == 1
 
 * Lighting fuel
 g byte lightFuel = inlist(q_18, 1, 2, 3)
@@ -129,10 +129,10 @@ g distMarket = s_04 if inlist(s_01, 6)
 
 collapse (max) distHealth distRoad distTown distMarket, by(a01)
 
-la var distHealth "Distance to nearest health center"
-la var distRoad "Distance to nearest road"
-la var distTown "Distance to nearest town"
-la var distMarket "Distance to nearest market"
+la var distHealth "Distance to nearest health center (km)"
+la var distRoad "Distance to nearest road (km)"
+la var distTown "Distance to nearest town(km)"
+la var distMarket "Distance to nearest market (km)"
 
 merge 1:1 a01 using "$pathout/houseinfra.dta"
 drop _merge
