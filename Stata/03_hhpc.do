@@ -43,15 +43,18 @@ foreach x of local assets {
 *end
 foreach name of varlist trunk-donkey {
 	la var `name' "No. `name's owned by hh"
-	bys a01: egen n`name' = total(`name')
+	bys a01: egen n`name' = (`name'*d1_04)
+	replace n`name'=0 if n`name'==. 
 	la var n`name' "Total `name's owned by hh"
 }
 *end
 
 bys a01: g nsolar = d1_04 if d1_02 == 43 & d1_03 == 1
++replace nsolar = 0 if nsolar==.  //ac (2)
 la var nsolar "hh has solar energy panel"
 
 bys a01: g ngenerator = d1_04 if d1_02 == 44 & d1_03 == 1
+replace ngenerator = 0 if ngenerator==. 
 la var ngenerator "hh has electricity generator"
 
 bys a01: g cashOnHand = d1_04 if d1_02 == 42 
@@ -67,15 +70,17 @@ la var jewelryVal "Value of jewelry"
 * Calculate value of durables owned and check distribution
 sort a01 d1_02
 egen hhDurablesValue = sum(d1_10), by(a01 d1_02)
+egen hhDurablesTotVal = sum(hhDurablesValue), by(a01)
+la var hhDurablesTotVal "Total value of durables using hh reported figures"
 *tabstat hhDurablesValue, by(d1_02) stat(mean sd min max)
 
 * Another method for hhdurval
-egen munitprice = median(d1_10), by(d1_02)
+egen munitprice = median(d1_10/d1_04), by(d1_02)  //ac (3)
 la var munitprice "Median price of durable asset"
 
 * Calculate total value of all durables (including gold and jewelry)
 egen hhdurasset = total(d1_04 * munitprice), by(a01)
-la var hhdurasset "Total value of all durable assets"
+la var hhdurasset "Total value of all durable assets using item median"
 replace hhdurasset = . if hhdurasset ==0
 
 *Collapse process
@@ -179,7 +184,7 @@ foreach x of local machines {
 * Calculate the median value of each asset group
 * For example: for tractors, take the median value of all tractors listed
 * Then multiply that number by the number of tractors owned by a hh 
-egen munitprice = median(d2_10), by(d2_02)
+egen munitprice = median(d2_10/d2_04), by(d2_02)
 la var munitprice "Median price of ag assets"
 
 egen hhagasset = total(d2_04 * munitprice), by(a01)
@@ -204,7 +209,7 @@ ds(a01 munitprice), not
 	qui collapse (max) `r(varlist)',
 	by(a01) fast;
 #delimit cr
-
+bob
 * Reapply variable lables and save a copy
 include "$pathdo/attachlabels.do"
 
