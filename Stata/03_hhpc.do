@@ -209,7 +209,7 @@ ds(a01 munitprice), not
 	qui collapse (max) `r(varlist)',
 	by(a01) fast;
 #delimit cr
-bob
+
 * Reapply variable lables and save a copy
 include "$pathdo/attachlabels.do"
 
