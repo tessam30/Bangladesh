@@ -233,11 +233,12 @@ ds(a01 munitprice), not
 	qui collapse (max) `r(varlist)',
 	by(a01) fast;
 #delimit cr
-
+bob
 * Reapply variable lables and save a copy
 include "$pathdo/attachlabels.do"
 
-*Run factor analysis to create ag wealth index
+* Run factor analysis to create ag wealth index
+* May have to modify below depending on ording of variables;
 qui ds(a01 sample_type hhagasset), not
 qui factor kaste-harvester, pcf
 rotate
@@ -261,4 +262,3 @@ save "$pathout/hhpc.dta", replace
 erase "$pathout/hhdurables.dta"
 log2html "$pathlog/03_hhpc", replace
 log close
-
