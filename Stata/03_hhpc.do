@@ -42,15 +42,15 @@ foreach x of local assets {
 	}
 *end
 foreach name of varlist trunk-donkey {
-	la var `name' "No. `name's owned by hh"
-	bys a01: egen n`name' = (`name'*d1_04)
+	la var `name' "HH owns at least one `name's"
+	bys a01: g n`name' = (`name'*d1_04)
 	replace n`name'=0 if n`name'==. 
 	la var n`name' "Total `name's owned by hh"
 }
 *end
 
 bys a01: g nsolar = d1_04 if d1_02 == 43 & d1_03 == 1
-+replace nsolar = 0 if nsolar==.  //ac (2)
+replace nsolar = 0 if nsolar==.  //ac (2)
 la var nsolar "hh has solar energy panel"
 
 bys a01: g ngenerator = d1_04 if d1_02 == 44 & d1_03 == 1
@@ -118,6 +118,30 @@ qui predict durwealth
 	alpha trunk bucket stove cookpots bed cabinet tableChairs hukka 
 	fan iron radio cd clock tvbw tvclr sew bike rickshaw van 
 	boat elecboat moto mobile landphone;
+#delimit cr
+
+* Can also create the wealth index based on how many assets of each type are owned
+
+#delimit ;
+	qui factor ntrunk nbucket nstove ncookpots nbed ncabinet ntableChairs nhukka 
+	nfan niron nradio ncd nclock ntvbw ntvclr nsew nbike nrickshaw nvan 
+	nboat nelecboat nmoto nmobile nlandphone, pcf;
+#delimit cr
+qui rotate
+qui predict durwealth2
+
+/* Check Cronbach's alpha for Scale reliability coefficent higher than 0.50;
+	Scale derived is reasonable b/c the estimated correlation between it and 
+	underlying factor it is measuring is sqrt(0.6198) = .7873 
+	
+	NOTE: There is a rather large difference in the scores depending on the
+	method used.  The former is based on simply ownership while the second
+	accounts for the number of assets; Need to check if method is standardizing
+	the variables.*/
+#delimit ;
+	alpha ntrunk nbucket nstove ncookpots nbed ncabinet ntableChairs nhukka 
+	nfan niron nradio ncd nclock ntvbw ntvclr nsew nbike nrickshaw nvan 
+	nboat nelecboat nmoto nmobile nlandphone;
 #delimit cr
 
 * Plot loadings for review
