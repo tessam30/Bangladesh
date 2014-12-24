@@ -129,10 +129,10 @@ g distMarket = s_04 if inlist(s_01, 6)
 
 collapse (max) distHealth distRoad distTown distMarket, by(a01)
 
-la var distHealth "Distance to nearest health center"
-la var distRoad "Distance to nearest road"
-la var distTown "Distance to nearest town"
-la var distMarket "Distance to nearest market"
+la var distHealth "Distance to nearest health center (in km)"
+la var distRoad "Distance to nearest road (in km)"
+la var distTown "Distance to nearest town (in km)"
+la var distMarket "Distance to nearest market (in km)"
 
 merge 1:1 a01 using "$pathout/houseinfra.dta"
 drop _merge
