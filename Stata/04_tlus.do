@@ -45,6 +45,11 @@ foreach x of local lvstk {
 	* Check that asset matches order
 	display in yellow "`x': `count' livestock code"
 	local count = `count'+1
+	
+	* Number seven skipped in survey for whatever reason
+	if `count' == 7 {
+		local count = `count' + 1
+		}
 	}
 *end
 
