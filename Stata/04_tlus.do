@@ -22,8 +22,8 @@ use "$pathin/023_mod_k1_male.dta", clear
 * create vector of assets for which binary variables are created
 #delimit ;
 local lvstk bullock mcow buffalo goat sheep
-		chicken duck othbirds other;
-#delimit cr
+		chicken na duck othbirds other; //ac 1
+#delimit cr 
 
 * Create three livestock variables all related to holdings in time.
 local count = 1
@@ -47,6 +47,10 @@ foreach x of local lvstk {
 	local count = `count'+1
 	}
 *end
+
+* drop missing livestock code 7
+ds na* //ac 1
+drop na* //ac 1
 
 * Determine market unit price by taking total net value of sales / number sold
 replace k1_18 =. if k1_18 == 0
