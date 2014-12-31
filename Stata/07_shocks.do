@@ -57,7 +57,7 @@ la var healthshk "Loss of income or medical expenses due to illness or injury"
 la var healthshkR "Loss of income or medical expenses due to illness or injury in last 3 years"
 
 * Because of frequency create annual health shock dummy
-foreach x of numlist 2007(1)2011 {
+foreach x of numlist 2007(1)2012 {
 	g byte healthshk`x' =inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & t1_05 == `x'
 	la var healthshk`x' "Health shock in `x'"
 	}
@@ -132,13 +132,13 @@ foreach x of varlist healthshk floodshk agshk assetshk finshk priceshk {
 g byte nocope =   t1_08a == 1
 g byte goodcope = inlist(t1_08a, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24) 
 g byte badcope =  inlist(t1_08a, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) 
-g byte loancopeNGO = inlist(t1_08a, 9)
+g byte loancopeNGO = inlist(t1_08a, 8)
 g byte loancopeMahajan = inlist(t1_08a, 9)
 
 g byte nocopeR =   t1_08a == 1 & inlist(t1_05, 2010, 2011, 2012)
 g byte goodcopeR = inlist(t1_08a, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24)  & inlist(t1_05, 2010, 2011, 2012)
 g byte badcopeR =  inlist(t1_08a, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) & inlist(t1_05, 2010, 2011, 2012)
-g byte loancopeNGOR = inlist(t1_08a, 9) & inlist(t1_05, 2010, 2011, 2012)
+g byte loancopeNGOR = inlist(t1_08a, 8) & inlist(t1_05, 2010, 2011, 2012)
 g byte loancopeMahajanR = inlist(t1_08a, 9) & inlist(t1_05, 2010, 2011, 2012)
 
 la var nocope "No coping strategy used by hh"
@@ -170,7 +170,7 @@ save "$pathout/negshocks.dta", replace
 use "$pathin/039_mod_t2_male.dta", clear
 
 * Create positive shock variables
-g byte edshkpos = inlist(t2_02, 9, 10, 26) & inlist(t2_07, 1, 2) & t2_03 == 1
+g byte edshkpos = inlist(t2_02, 9, 10, 7) & inlist(t2_07, 1, 2) & t2_03 == 1
 la var edshkpos "Positive educational income shock"
 egen edshkTot = total(t2_06) if edshkpos == 1, by(a01)
 la var edshkTot "Total value of educational shock"
@@ -204,15 +204,16 @@ merge 1:1 a01 using "$pathout/negshocks.dta", gen(shock_merge)
 * Merge in hh roster (just hhid) to compute zeros for missing households (are they missing at random?)
 merge m:1 a01 using "$pathout\hhid.dta", gen(hhID_merge)
 merge 1:1 a01 using "$pathin/001_mod_a_male.dta", gen(miss_merge)
-bob
+
 
 /* NOTE: Assuming that missing information is equivalent to zero; Validate for all vars */
 * Note missingness in variables: Mostly related to asset losses
 mdesc 
 
 * Replace missing information with zeros noting potential introduction of bias here.
-foreach x of varlist _all {
+foreach x of varlist edshkpos - loancopeMahajanR  {
 	replace `x' = 0 if `x' == .
+	display "`x'"
 	}
 *end
 
