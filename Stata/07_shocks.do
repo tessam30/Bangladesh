@@ -57,20 +57,20 @@ la var healthshk "Loss of income or medical expenses due to illness or injury"
 la var healthshkR "Loss of income or medical expenses due to illness or injury in last 3 years"
 
 * Because of frequency create annual health shock dummy
-foreach x of numlist 2007(1)2011 {
+foreach x of numlist 2007(1)2012 { //ac (2)
 	g byte healthshk`x' =inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & t1_05 == `x'
 	la var healthshk`x' "Health shock in `x'"
 	}
 *end
 
 * See if health shocks are recurring in same HH
-foreach x of numlist 2007(1)2012 {
-	g tmpshk`x' = inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & t1_05 == `x'
-}	
+*foreach x of numlist 2007(1)2012 {
+*	g tmpshk`x' = inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & t1_05 == `x'
+*}	//ac (2)
 *end
-egen healthshkHist = rsum(tmpshk2007 tmpshk2008 tmpshk2009 tmpshk2010 tmpshk2011 tmpshk2012)
+egen healthshkHist = rsum(healthshk2007 healthshk2008 healthshk2009 healthshk2010 healthshk2011 healthshk2012) //ac (2) 
 la var healthshkHist "Number of total health shocks in last 5 years"
-drop tmpshk*
+*drop tmpshk* //ac (2) 
 
 * Any flood related shock (includes loss of livestock and crops specifically due to flood)
 g byte floodshk = inlist(t1_02, 6, 9, 11, 14, 16) & inlist(t1_10, 1, 2)
@@ -93,14 +93,14 @@ la var assetshk "Loss of productive and non-productive assets"
 la var assetshkR "Loss of productive and non-productive assets in last 3 years"
 
 * Financial shocks (dowry, wedding, bribes, extortion, bankruptcy, division of property, court)
-g byte finshk = inlist(t1_02, 5, 18, 19, 20, 21, 22, 25, 26, 27, 28, 30, 31) & inlist(t1_10, 1, 2) 
-g byte finshkR = inlist(t1_02, 5, 18, 19, 20, 21, 22, 25, 26, 27, 28, 30, 31) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
+g byte finshk = inlist(t1_02, 1, 3, 4, 5, 18, 19, 20, 21, 22, 25, 26, 27, 28, 30, 31) & inlist(t1_10, 1, 2) //ac (3)
+g byte finshkR = inlist(t1_02, 1, 3, 4, 5, 18, 19, 20, 21, 22, 25, 26, 27, 28, 30, 31) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012) //ac (3)
 la var finshk "Any type of financial shock (dowry, wedding, bribes, extortion...etc)"
 la var finshkR "Any type of financial shock (dowry, wedding, bribes, extortion...etc)"
 
 * Food price shock
-g byte priceshk = inlist(t1_02, 32, 33) & inlist(t1_10, 1, 2) 
-g byte priceshkR = inlist(t1_02, 32) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
+g byte priceshk = inlist(t1_02, 32, 33) & inlist(t1_10, 1, 2)  //ac(4)
+g byte priceshkR = inlist(t1_02, 32, 33) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012) //ac(4)
 la var priceshk "Price shock"
 la var priceshkR "Price shock in last 3 years"
 
@@ -130,16 +130,28 @@ foreach x of varlist healthshk floodshk agshk assetshk finshk priceshk {
 				*/
 				
 g byte nocope =   t1_08a == 1
-g byte goodcope = inlist(t1_08a, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24) 
-g byte badcope =  inlist(t1_08a, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) 
-g byte loancopeNGO = inlist(t1_08a, 9)
-g byte loancopeMahajan = inlist(t1_08a, 9)
+g byte goodcope = inlist(t1_08a|t1_08b, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24) | ///
+	inlist(t1_08b, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24) | ///
+	inlist(t1_08c, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24) // ac(6)
+g byte badcope =  inlist(t1_08a, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) | ///
+	inlist(t1_08b, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) | ///
+	inlist(t1_08c, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) // ac(6)
+g byte loancopeNGO = inlist(t1_08a, 8) | inlist(t1_08b, 89) | inlist(t1_08c, 9) // ac(6 & 7)
+g byte loancopeMahajan = inlist(t1_08a, 9) | inlist(t1_08b, 9) | inlist(t1_08c, 9) // ac(6)
 
 g byte nocopeR =   t1_08a == 1 & inlist(t1_05, 2010, 2011, 2012)
-g byte goodcopeR = inlist(t1_08a, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24)  & inlist(t1_05, 2010, 2011, 2012)
-g byte badcopeR =  inlist(t1_08a, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) & inlist(t1_05, 2010, 2011, 2012)
-g byte loancopeNGOR = inlist(t1_08a, 9) & inlist(t1_05, 2010, 2011, 2012)
-g byte loancopeMahajanR = inlist(t1_08a, 9) & inlist(t1_05, 2010, 2011, 2012)
+g byte goodcopeR = (inlist(t1_08a, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24) | ///
+	inlist(t1_08b, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24) | ///
+	inlist(t1_08c, 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24)) & ///
+	inlist(t1_05, 2010, 2011, 2012)  //ac(6)
+g byte badcopeR =  (inlist(t1_08a, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) | ///
+	inlist(t1_08b, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18) | ///
+	inlist(t1_08c, 2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18)) & ///
+	inlist(t1_05, 2010, 2011, 2012) //ac(6)
+g byte loancopeNGOR = (inlist(t1_08a, 8) | inlist(t1_08b, 8) | inlist(t1_08c, 8)) & ///
+	inlist(t1_05, 2010, 2011, 2012) //ac(6 & 7)
+g byte loancopeMahajanR = (inlist(t1_08a, 9) | inlist(t1_08b, 9) | inlist(t1_08c, 9)) & ///
+	inlist(t1_05, 2010, 2011, 2012) //ac(6)
 
 la var nocope "No coping strategy used by hh"
 la var goodcope "Good coping strategy"
@@ -170,13 +182,13 @@ save "$pathout/negshocks.dta", replace
 use "$pathin/039_mod_t2_male.dta", clear
 
 * Create positive shock variables
-g byte edshkpos = inlist(t2_02, 9, 10, 26) & inlist(t2_07, 1, 2) & t2_03 == 1
+g byte edshkpos = inlist(t2_02, 7, 9, 10) & inlist(t2_07, 1, 2) & t2_03 == 1 //ac(8)
 la var edshkpos "Positive educational income shock"
 egen edshkTot = total(t2_06) if edshkpos == 1, by(a01)
 la var edshkTot "Total value of educational shock"
 
 * Replace zeros with stipend values listed in question (100 taka)
-replace edshkTot = 100 if edshkTot == 0 & inlist(t2_02, 9)
+replace edshkTot = edshkTot+100 if t2_02==9 & t2_03==1 //ac(9)
 
 g byte finshkpos = inlist(t2_02, 2, 3, 4, 5) & inlist(t2_07, 1, 2) & t2_03 == 1
 la var finshkpos "Positive financial shock not employment related"
