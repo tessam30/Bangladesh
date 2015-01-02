@@ -173,11 +173,9 @@ bys a01: gen hhUnder5=_N
 
 global exog1 "gender gender#c.ageMonths ageMonths c.ageMonths#c.ageMonths hhUnder5 hhSize sexRatio depRatio hhlabor femhead agehead educAdult"
 global exog2 "$exog1 FCS dietDiversity privateWater latrineSealed distHealth distMarket"
-global exog3 "$exog2 infraindex agAssetWealth durwealth cultLand livestock migrationNW i.divName ib(2).hh_type"
-
+global exog3 "$exog2 infraindex agAssetWealth durwealth cultLand livestock migrationNW ib(3).divName i.hh_type"
 
 est clear
-drop resid
 eststo stunt1, title("model 1"): xi:reg stunting $exog1, robust
 eststo stunt2, title("model 2"): xi:reg stunting $exog2, robust
 eststo stunt3, title("model 3"): xi:reg stunting $exog3, robust
