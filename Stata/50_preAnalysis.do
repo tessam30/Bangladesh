@@ -208,8 +208,24 @@ esttab, se star(* 0.10 ** 0.05 *** 0.01) label
 esttab using "$pathreg/wasting.txt", replace wide plain se mlabels(none) label
 
 est clear
-eststo stunt3, title("model 3"): xi:reg stunting $exog3, robust
-eststo uweight3, title("model 3"): xi:reg underweight $exog3, robust
-eststo wasting3, title("model 3"): xi:reg wasting $exog3, robust
+eststo stunting, title("model 3"): xi:reg stunting $exog3, robust
+eststo uderweight, title("model 3"): xi:reg underweight $exog3, robust
+eststo wasting, title("model 3"): xi:reg wasting $exog3, robust
 esttab, se star(* 0.10 ** 0.05 *** 0.01) label 
 esttab using "$pathreg/combinedCH.txt", replace wide plain se mlabels(none) label
+
+
+coefplot stunting || uderweight || wasting, xline(0, lwidth(thin) lcolor(gray)) mlabs(small) ylabel(, labsize(tiny)) /*
+*/ msize(small) mc(black) mlsty(black) mcolor(red) mlstyle(p1) xlabel(, labsize(small))  /*
+*/ title(Logit Shock Results, size(small) color(black)) scale(0.75) drop(_cons) 
+
+* Look at the outcomes by age category
+twoway (lowess stunted ageMonths, mean adjust bwidth(0.3)) /*
+*/ (lowess wasted ageMonths, mean adjust bwidth(0.3)) /*
+*/ (lowess underwgt ageMonths, mean adjust bwidth(0.3)),  xlabel(0(2)60,  labsize(tiny))
+
+lpoly stunted ageMonths, deg(1) bw(.8)
+
+* Export to R for a look in ggplot
+keep stunted underwgt wasted
+
