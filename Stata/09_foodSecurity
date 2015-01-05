@@ -11,7 +11,7 @@
 #-------------------------------------------------------------------------------
 */
 clear
- ssc inst distinct
+ssc inst distinct
 capture log close
 log using "$pathlog/09_foodSecurity", replace
 use "$pathin/048_mod_w4_female.dta"
@@ -36,8 +36,8 @@ replace weeksAbsent = 0 if inlist(w4_03, 0, 99)
 replace weeksAbsent = 1 if inlist(w4_03, .5, 1, 2, 3, 4, 5, 6, 7)
 replace weeksAbsent = 2 if inlist(w4_03, 8, 9, 10, 11, 12, 13, 14)
 replace weeksAbsent = 3 if inlist(w4_03, 15, 16, 18, 19, 20, 21)
-replace weeksAbsent = 4 if inlist(w4_03, 22, 23 25, 26, 27, 28, 30, 32, 36)
-replace weeksAbsent = 5 if inlist(w4_03, 60, 77, 90, 150, 240, 360, 365, 1095, 1825)
+replace weeksAbsent = 4 if inlist(w4_03, 22, 23, 25, 26, 27, 28)
+replace weeksAbsent = 5 if inlist(w4_03, 30, 32, 40, 36, 60, 77, 90, 150, 240, 360, 365, 1095, 1825)
 
 la var weeksAbsent "Max time lost due to illness (15+ only)"
 tab weeksAbsent
@@ -90,13 +90,13 @@ tab x3_07_5, mi
 replace x3_07_5 = 5 if x3_07_5 == .5
 
 tab x3_07_9, mi nol
-replace x3_07_9 = 7 if x3_07_9 == .7
+replace x3_07_9 = 7 if x3_07_9 <.71 & x3_07_9> .68
 
 tab x3_07_11, mi nol
-replace  x3_07_11 = 1 if  x3_07_11 == .1
+replace x3_07_11 = 1 if  x3_07_11< .2 & x3_07_11>.09
 
 tab x3_07_12, mi nol
-replace  x3_07_12 = 5 if  x3_07_12 == .5
+replace x3_07_12 = 5 if  x3_07_12 == .5
 
 
 * Construct a diet diversity index using aggregates of consumption of different foods
@@ -210,4 +210,6 @@ keep sample_type foodLack dietDiversity FCS FCS_categ cereal_days tubers_days st
 */ veg_days fruit_days meat_days milk_days sugar_days oil_days a01
 save "$pathout/foodSecurity.dta", replace
 
+capture log close
+log2html "$pathlog/09_foodSecurity", replace
 
