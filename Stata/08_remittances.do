@@ -22,8 +22,10 @@ use "$pathin/040_mod_u_male.dta"
 tab slno if u01 == 1, mi
 g byte safetyNet = u01 == 1
 
-* Calculate total monetary value for each program
-egen snettmp = rsum2(u02 u04 u06 u08 u07) if u01 == 1
+* Calculate total monetary value for each program (rice & wheat are taka per kg)
+g int riceTotVal = u03*u04 //ac(1)
+g int wheatTotVal =u05*u06 //ac(1)
+egen snettmp = rsum2(u02 riceTotVal wheatTotVal u08 u07) if u01 == 1
 
 * Calculate total saftey net value by household
 egen snetValue = total(snettmp), by(a01)
@@ -167,3 +169,7 @@ foreach x of local efiles {
 
 log2html "$pathlog/08_remittances", replace
 log close
+
+
+
+
