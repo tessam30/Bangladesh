@@ -33,9 +33,14 @@ use "$pathin/063_mod_z4_female.dta"
 
 * Divorce threats
 g byte divorceThreat = inlist(z4_01a, 1, 2, 3) == 1
+replace divorceThreat = . if z4_01a==9 //ac(2)
 g byte anotherWife = inlist(z4_01b, 1, 2, 3) == 1
+replace anotherWife = . if z4_01b==9 //ac(2)
 g byte verbalAbuse = inlist(z4_01c, 1, 2, 3) == 1
+replace verbalAbuse = . if z4_01c==9 //ac(2)
 g byte physicalAbuse = inlist(z4_01d, 1, 2, 3) == 1
+replace physicalAbuse = . if z4_01d==9 //ac(2)
+
 la var divorceThreat "Husband made divorce threats" 
 la var anotherWife "Husband threatened to take another wife" 
 la var verbalAbuse "Someone in household verbally abused female" 
