@@ -223,8 +223,8 @@ bob
 mdesc 
 
 * Replace missing information with zeros noting potential introduction of bias here.
-foreach x of varlist _all {
-	replace `x' = 0 if `x' == .
+ds , not(type string) //ac(10)
+foreach x of varlist `r(varlist)' { //ac(10)
 	}
 *end
 
