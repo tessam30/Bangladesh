@@ -6,7 +6,7 @@
 # Modified: 2015/01/26
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
-# Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
+# Ado(s):	
 # Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
 #-------------------------------------------------------------------------------
 */
