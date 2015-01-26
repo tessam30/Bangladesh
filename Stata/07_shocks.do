@@ -18,7 +18,7 @@ log using "$pathlog/07_shocks", replace
 
 set more off
 * Load the data for negative shocks
-use "$pathin\038_mod_t1_male.dta", clear
+use "$pathin\male_mod_t1_002.dta", clear
 
 * Look at shock variables; For sorted tabulations (*ssc install tab_chi)
 tabsort t1_02 t1_05 if inlist(t1_10, 1, 2), mi
@@ -159,7 +159,7 @@ keep `r(varlist)'
 
 * Collapse down to hh
 include "$pathdo/copylabels.do"
-qui ds(a01 sample_type), not
+qui ds(a01), not
 collapse (max) `r(varlist)', by(a01)
 include "$pathdo/attachlabels.do"
 
@@ -193,7 +193,7 @@ keep `r(varlist)'
 
 * Collapse down to hh
 include "$pathdo/copylabels.do"
-ds(a01 sample_type), not
+ds(a01), not
 collapse (max) `r(varlist)', by(a01)
 include "$pathdo/attachlabels.do"
 
@@ -205,9 +205,12 @@ merge 1:1 a01 using "$pathout/negshocks.dta", gen(shock_merge)
 merge m:1 a01 using "$pathout\hhid.dta", gen(hhID_merge)
 merge 1:1 a01 using "$pathin/001_mod_a_male.dta", gen(miss_merge)
 
-
 /* NOTE: Assuming that missing information is equivalent to zero; Validate for all vars */
 * Note missingness in variables: Mostly related to asset losses
+
+/* !!UPDATE!!: IFPRI contractor fixed data and included households reporting zero shocks in module. 
+   There was quite a large number of households (about 45% of sample households) that did not report 
+   any negative shocks in five years prior to the survey.*/
 mdesc 
 
 * Replace missing information with zeros noting potential introduction of bias here.
@@ -216,9 +219,6 @@ foreach x of varlist edshkpos - loancopeMahajanR  {
 	display "`x'"
 	}
 *end
-
-* Add a note to dataset
-notes: 2,976 were not included in shock module (unsure why). Setting to zero for now.
 
 * Save
 save "$pathout/shocks.dta", replace
