@@ -149,11 +149,9 @@ restore
 merge 1:1 a01 using "$pathout/weights.dta"
 drop _merge
  
-* Run factor analysis to develop infrastructure index for households
+* Run factor analysis to develop infrastructure index for households (Filmer & Pritchett, 2001)
 /* NOTES: Create Infrastructure indices 
  Keeping only first factor to simplify;
- Use polychoric correlation matrix because of binary variables
- http://www.ats.ucla.edu/stat/stata/faq/efa_categorical.htm
 */
 
 * Set global vector of variables to include in analysis
