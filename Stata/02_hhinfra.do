@@ -3,7 +3,7 @@
 # Purpose:	Process household data and create hh characteristic variables
 # Author:	Tim Essam, Ph.D.
 # Created:	2014/11/05
-# Modified: 2014/11/05
+# Modified: 2015/01/27
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
 # Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
@@ -137,6 +137,17 @@ la var distMarket "Distance to nearest market (in km)"
 merge 1:1 a01 using "$pathout/houseinfra.dta"
 drop _merge
 
+preserve
+clear
+use "$pathin\FTF_BIHS_household expenditure_Zihad_2_wq.dta" 
+keep a01 hhweight popweight wgt_new popwgt sample_type dvcode dcode uzcode uncode mzcode /*
+*/ vcode village_name hh_type flagaddl regnm flag_org aez_name flag_smpl
+save "$pathout\weights.dta", replace
+restore
+
+* Merge in sampling weights for use in FA
+merge 1:1 a01 using "$pathout/weights.dta"
+drop _merge
  
 * Run factor analysis to develop infrastructure index for households
 /* NOTES: Create Infrastructure indices 
@@ -164,26 +175,29 @@ foreach x of local infra {
 *
 notes: Check robustness PCA on infrastructure of replacing missing values with averages.
 
-*Now run factor analysis retaining only principal component factors
-factor brickTinHome dfloor electricity garbage newHome /* 
+*Now run factor analysis retaining only principal component factors; 
+qui factor brickTinHome dfloor garbage newHome /* 
 */ latrineSealed lightFuel metalRoof mobile ownHouse /* 
-*/ privateWater singleRoom waterAccess, pcf
-rotate	
-predict infraindex
+*/ singleRoom waterAccess, pcf
+qui predict infraindex
 la var infraindex "infrastructure index"
+alpha brickTinHome dfloor garbage newHome /* 
+*/ latrineSealed lightFuel metalRoof mobile ownHouse /* 
+*/ singleRoom waterAcces
 
 * Plot loadings for review
 loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	*/ xline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ title(Household infrastructure index loadings)
+	
 graph export "$pathgraph/infraLoadings.png", as(png) replace
 scree, title(Scree plot of infra index)
 graph export "$pathgragh/infraScree.png", as(png) replace
 	
-*Now run factor analysis retaining only principal component factors
-factor distHealth distMarket distRoad distTown, pcf	
-predict accessindex
+*Now run factor analysis retaining only principal component factors; Exploratory, not really neede
+qui factor distHealth distMarket distRoad distTown, pcf	
+qui predict accessindex
 la var infraindex "accessiblity index"
 	
 *loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
