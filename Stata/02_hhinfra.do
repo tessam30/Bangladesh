@@ -3,7 +3,7 @@
 # Purpose:	Process household data and create hh characteristic variables
 # Author:	Tim Essam, Ph.D.
 # Created:	2014/11/05
-# Modified: 2015/01/27
+# Modified: 	2015/01/27
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
 # Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
