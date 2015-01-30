@@ -6,7 +6,7 @@
 # Modified: 2014/11/05
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
-# Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
+# Ado(s):	
 # Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
 #-------------------------------------------------------------------------------
 */
@@ -104,11 +104,11 @@ tabstat ntrunk-ngenerator, stat(mean sd min max)
 
 * Create durable wealth index based on durable assets
 #delimit ;
-	qui factor trunk bucket stove cookpots bed cabinet tableChairs hukka 
+	factor trunk bucket stove cookpots bed cabinet tableChairs hukka 
 	fan iron radio cd clock tvbw tvclr sew bike rickshaw van 
 	boat elecboat moto mobile landphone, pcf;
 #delimit cr
-qui rotate
+*qui rotate
 qui predict durwealth
 
 /* Check Cronbach's alpha for Scale reliability coefficent higher than 0.50;
@@ -123,11 +123,11 @@ qui predict durwealth
 * Can also create the wealth index based on how many assets of each type are owned
 
 #delimit ;
-	qui factor ntrunk nbucket nstove ncookpots nbed ncabinet ntableChairs nhukka 
+	factor ntrunk nbucket nstove ncookpots nbed ncabinet ntableChairs nhukka 
 	nfan niron nradio ncd nclock ntvbw ntvclr nsew nbike nrickshaw nvan 
 	nboat nelecboat nmoto nmobile nlandphone, pcf;
 #delimit cr
-qui rotate
+*qui rotate
 qui predict durwealth2
 
 /* Check Cronbach's alpha for Scale reliability coefficent higher than 0.50;
@@ -136,8 +136,7 @@ qui predict durwealth2
 	
 	NOTE: There is a rather large difference in the scores depending on the
 	method used.  The former is based on simply ownership while the second
-	accounts for the number of assets; Need to check if method is standardizing
-	the variables.*/
+	accounts for the number of assets*/
 #delimit ;
 	alpha ntrunk nbucket nstove ncookpots nbed ncabinet ntableChairs nhukka 
 	nfan niron nradio ncd nclock ntvbw ntvclr nsew nbike nrickshaw nvan 
@@ -191,7 +190,6 @@ local machines tractor tiller trolley thresher fodderMachine swingBasket
 		elecPump dieselPump elecSprayer harvester;
 #delimit cr
 
-
 * Start count on Machinery assets (p. 10, Module D2)
 local count = 12
 foreach x of local machines {
@@ -233,7 +231,7 @@ ds(a01 munitprice), not
 	qui collapse (max) `r(varlist)',
 	by(a01) fast;
 #delimit cr
-bob
+
 * Reapply variable lables and save a copy
 include "$pathdo/attachlabels.do"
 
@@ -241,7 +239,7 @@ include "$pathdo/attachlabels.do"
 * May have to modify below depending on ording of variables;
 qui ds(a01 sample_type hhagasset), not
 qui factor kaste-harvester, pcf
-rotate
+*rotate
 predict agAssetWealth
 alpha kaste-harvester
 
@@ -262,3 +260,4 @@ save "$pathout/hhpc.dta", replace
 erase "$pathout/hhdurables.dta"
 log2html "$pathlog/03_hhpc", replace
 log close
+
