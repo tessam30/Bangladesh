@@ -51,7 +51,7 @@ foreach dir in `pFolder' {
 
 * Run initially to set up folder structure
 * Choose your folders to set up as the local macro `folders'
-local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python Programs
+local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python Programs Sensitive_Data
 foreach dir in `folders' {
 	confirmdir "`dir'"
 	if `r(confirmdir)'==170 {
@@ -82,6 +82,7 @@ global pathR "`dir'\R"
 global pathPython "`dir'\Python"
 global pathProgram "`dir'\Program"
 global pathPdrive "P:\GeoCenter\GIS\Projects\Bangladesh"
+global pathSensitive "`dir'\Sensitive_Data"
 
 * Project macros are defined as:
 macro list 
