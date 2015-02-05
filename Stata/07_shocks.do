@@ -189,6 +189,9 @@ la var healthshkHist "Number of total health shocks in last 5 years"
 g totShock = healthshk+ floodshk+ assetshk+ finshk+ priceshk+ othershk
 la var totShock "Total major househld shocks"
 
+* Rename all flood shocks to hazard
+rename flood* hazard*
+
 * 244 households affected by the positive overlap in variables or timing of shocks. Investigated an is OK
 count if ( healthshk+ floodshk+ assetshk+ finshk+ priceshk+ othershk) != shkTot
 
@@ -248,6 +251,8 @@ foreach x of varlist edshkpos - loancopeMahajanR  {
 	display "`x'"
 	}
 *end
+
+note: Major shocks are: health, hazard, asset, financial, 
 
 * Save
 save "$pathout/shocks.dta", replace
