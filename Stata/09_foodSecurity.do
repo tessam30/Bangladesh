@@ -190,7 +190,7 @@ Will do this in R to generate nice looking ggplots using ggplot
  */
  
  * Merge in geographic data 
-merge 1:1 a01 using $pathin/001_mod_a_male.dta
+merge 1:1 a01 using "$pathin/001_mod_a_male.dta"
  
 preserve
 keep staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days FCS a01 div_name District_Name Upazila_Name
