@@ -193,7 +193,7 @@ la var totShock "Total major househld shocks"
 rename flood* hazard*
 
 * 244 households affected by the positive overlap in variables or timing of shocks. Investigated an is OK
-count if ( healthshk+ floodshk+ assetshk+ finshk+ priceshk+ othershk) != shkTot
+count if ( healthshk+ hazardshk+ assetshk+ finshk+ priceshk+ othershk) != shkTot
 
 * Save as negative shocks
 save "$pathout/negshocks.dta", replace
