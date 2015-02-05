@@ -210,6 +210,38 @@ keep sample_type foodLack dietDiversity FCS FCS_categ cereal_days tubers_days st
 */ veg_days fruit_days meat_days milk_days sugar_days oil_days a01
 save "$pathout/foodSecurity.dta", replace
 
+* Construct food prices for dietary diversity and FCS scores
+clear
+
+use "$pathin/031_mod_o1_female.dta", replace
+egen price_wheat = mean(o1_07) if inlist(o1_01, 5, 6, 7, 8, 9), by(a01)
+egen price_rice = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12), by(a01)
+egen price_starch = mean(o1_07) if inlist(o1_01, 14, 61, 62), by(a01)
+egen price_cereal = mean(o1_07) if inlist(o1_01, 13,  15, 16,  ), by(a01)
+egen price_vegetables = mean(o1_07) if inlist(o1_01, 27, 42, 43, 44 */
+*/ 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 57, 58, 64, 65, 69, 72, 73 /*
+*/ 80, 86,  ), by(a01)
+egen price_fruit = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_beans = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_eggs = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_dairy = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_meat = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_poultry = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_fish = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_fats = mean(o1_07) if inlist(o1_01, 34, 35, 36, 903), by(a01)
+egen price_sugar = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_condiments = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_nuts = mean(o1_07) if inlist(o1_01, ), by(a01)
+egen price_tobacco = mean(o1_07) if inlist(o1_01, 314, 315, 316, ), by(a01)
+
+
+
+
+
+
+
+
+
 capture log close
 log2html "$pathlog/09_foodSecurity", replace
 
