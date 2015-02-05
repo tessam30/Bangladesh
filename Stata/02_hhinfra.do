@@ -189,9 +189,9 @@ loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	*/ yline(0, lwidth(med) lpattern(tight_dot) lcolor(gs10)) /*
 	*/ title(Household infrastructure index loadings)
 	
-graph export "$pathgraph/infraLoadings.png", as(png) replace
+*graph export "$pathgraph\infraLoadings.png", as(png) replace
 scree, title(Scree plot of infra index)
-graph export "$pathgragh/infraScree.png", as(png) replace
+*graph export "$pathgragh\infraScree.png"
 	
 *Now run factor analysis retaining only principal component factors; Exploratory, not really neede
 qui factor distHealth distMarket distRoad distTown, pcf	
@@ -205,7 +205,7 @@ la var infraindex "accessiblity index"
 *graph export "$pathgraph\assessabilityLoadings.png", as(png) replace
 * Only one factor retained so there is no two-way graph.	
 scree, title(Scree plot of assessibility index)
-graph export "$pathgragh/infraScree.png", as(png) replace
+*graph export "$pathgragh/infraScree.png", as(png) replace
 
 * Save the hhinfra dataset
 save "$pathout/hhinfra.dta", replace

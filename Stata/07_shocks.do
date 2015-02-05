@@ -26,6 +26,7 @@ tabsort t1_02 t1_05 if inlist(t1_10, 1, 2), mi
 /* Major shocks are related to medical expenses due to illness or injury (30%); Food price
 shocks were common in 2011 and slightly in 2012. The 2007 floods appear to have
 affected about 207 households asset base. May be interesting to see how they've recovered.
+Need to also think about how to look at depth of shock; was it a one time event or persistent?
 */
 
 * what is the timing of shocks? Most med expenses incurred in Feb through October
@@ -37,17 +38,29 @@ tab t1_02 t1_04 if inlist(t1_10, 1, 2) & t1_05 == 2011
 3) Shocks are aggregated up to general categories to help w/ power
 */
 
+* With the updated data this approach no longer works. Need to reforumlate
 *Total shocks in past 5 years of any type
-bys a01: g shkTot = _N
+g byte shk = (t1_03 >0 & t1_03~=.) & inlist(t1_10, 1, 2)==1
+egen shkTot = total(shk), by(a01)
 la var shkTot "Total shocks reported of all types"
 
-egen shkLossTot = total(t1_07), by(a01)
+* What is the total value of losses due to shocks (who lost the most?)
+egen shkLossTot = total(t1_07) if inlist(t1_10, 1, 2), by(a01)
 la var shkLossTot "Total value of loss due to shocks"
+
+* By household, calculate the share of loss from each shock type
+* Use this information later to calculate which shock is the most damaging
+* in financial terms
+g shkLossShare = .
+replace shkLossShare = t1_07 / shkLossTot
+tab  t1_02, sum(shkLossShare)
 
 egen shkLossTotR = total(t1_07) if inlist(t1_05, 2010, 2011, 2012), by(a01)
 *replace shkLossTotR = 0 if shkLossTotR==.
 la var shkLossTot "Total value of loss due to shocks in last 5 years"
 la var shkLossTotR "Total value of loss due to shocks in last 3 years"
+g shkLossShareR = .
+replace shkLossShare = t1_07 / shkLossShare if inlist(t1_05, 2010, 2011, 2012) 
 
 ** Please refer to crosswalk **
 * Loss of income or medical expenses due to illness, injury, or death.
@@ -63,19 +76,10 @@ foreach x of numlist 2007(1)2012 {
 	}
 *end
 
-* See if health shocks are recurring in same HH
-foreach x of numlist 2007(1)2012 {
-	g tmpshk`x' = inlist(t1_02, 1, 2, 3, 4) & inlist(t1_10, 1, 2) & t1_05 == `x'
-}	
-*end
-egen healthshkHist = rsum(tmpshk2007 tmpshk2008 tmpshk2009 tmpshk2010 tmpshk2011 tmpshk2012)
-la var healthshkHist "Number of total health shocks in last 5 years"
-drop tmpshk*
-
 * Any flood related shock (includes loss of livestock and crops specifically due to flood)
-g byte floodshk = inlist(t1_02, 6, 9, 11, 14, 16) & inlist(t1_10, 1, 2)
-g byte floodshkR = inlist(t1_02, 6, 9, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
-g byte floodshk2007 = inlist(t1_02, 6, 9, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2007)
+g byte floodshk = inlist(t1_02, 6, 9, 10, 11, 14, 16) & inlist(t1_10, 1, 2)
+g byte floodshkR = inlist(t1_02, 6, 9, 10, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
+g byte floodshk2007 = inlist(t1_02, 6, 9, 10, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2007)
 la var floodshk "Any flood related shock"
 la var floodshkR "Any flood related shock in last 3 years"
 la var floodshk2007 "Flood related shock in 2007 (Cyclone Sidr)"
@@ -87,10 +91,16 @@ la var agshk "Any type of agricultural shock"
 la var agshkR "Any type of agricultural shock in last 3 years"
 
 * Asset shocks (loss of productivive and non-productive assets)
-g byte assetshk = inlist(t1_02, 14, 15, 16, 17) & inlist(t1_10, 1, 2) 
-g byte assetshkR = inlist(t1_02, 14, 15, 16, 17) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
-la var assetshk "Loss of productive and non-productive assets"
-la var assetshkR "Loss of productive and non-productive assets in last 3 years"
+g byte assetshk2 = inlist(t1_02, 14, 15, 16, 17) & inlist(t1_10, 1, 2) 
+g byte assetshk2R = inlist(t1_02, 14, 15, 16, 17) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
+la var assetshk2 "Loss of productive and non-productive assets"
+la var assetshk2R "Loss of productive and non-productive assets in last 3 years"
+
+* Asset shocks (loss of productivive and non-productive assets with no overlap)
+g byte assetshk = inlist(t1_02, 12, 13, 15, 17) & inlist(t1_10, 1, 2) 
+g byte assetshkR = inlist(t1_02, 12, 13 15, 17) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
+la var assetshk "Loss of productive and non-productive assets (no-overlap with floods)"
+la var assetshkR "Loss of productive and non-productive assets (no-overlap) in last 3 years"
 
 * Financial shocks (dowry, wedding, bribes, extortion, bankruptcy, division of property, court)
 g byte finshk = inlist(t1_02, 5, 18, 19, 20, 21, 22, 25, 26, 27, 28, 30, 31) & inlist(t1_10, 1, 2) 
@@ -111,7 +121,7 @@ la var othershk "Other shocks including eviction, divorce, arrested, prision, ot
 la var othershkR "Other shocks including eviction, divorce, arrested, prision, other in last 3 years"
 
 * Calculate total loss value of each type of shock & coping strategy
-foreach x of varlist healthshk floodshk agshk assetshk finshk priceshk {
+foreach x of varlist healthshk floodshk agshk assetshk assetshk2 finshk priceshk {
 	egen `x'Tot = total(t1_07) if `x' == 1, by(a01)
 	la var `x'Tot "Total loss value of `x'"
 	egen `x'RTot = total(t1_07) if `x'R == 1, by(a01)
@@ -153,6 +163,13 @@ la var badcopeR "Bad coping strategy in last 3 years"
 la var loancopeNGOR "To cope take NGO loan in last 3 years"
 la var loancopeMahajanR "To cope take money lender loan in last 3 years"
 
+clonevar shockEffect = t1_09
+
+* Create an effect variable for each major shock
+foreach x of varlist healthshk floodshk agshk assetshk finshk priceshk othershk {
+	egen `x'Effect = max(shockEffect) if `x' == 1, by(a01)
+	}
+
 * Collapse data down to household level making everything wide
 qui ds (t1*), not
 keep `r(varlist)'
@@ -162,6 +179,18 @@ include "$pathdo/copylabels.do"
 qui ds(a01), not
 collapse (max) `r(varlist)', by(a01)
 include "$pathdo/attachlabels.do"
+
+* Drop extra variables not needed (can calculate these w/ derived data)
+drop shkLossShare  shkLossShareR
+
+egen healthshkHist = rsum(healthshk2007 healthshk2008 healthshk2009 healthshk2010 healthshk2011 healthshk2012)
+la var healthshkHist "Number of total health shocks in last 5 years"
+
+g totShock = healthshk+ floodshk+ assetshk+ finshk+ priceshk+ othershk
+la var totShock "Total major househld shocks"
+
+* 244 households affected by the positive overlap in variables or timing of shocks. Investigated an is OK
+count if ( healthshk+ floodshk+ assetshk+ finshk+ priceshk+ othershk) != shkTot
 
 * Save as negative shocks
 save "$pathout/negshocks.dta", replace
