@@ -222,7 +222,7 @@ egen price_vegetables = mean(o1_07) if inlist(o1_01, 27, 42, 43, 44 */
 */ 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 57, 58, 64, 65, 69, 72, 73 /*
 */ 80, 86, 90, 910), by(a01)
 egen price_fruit = mean(o1_07) if inlist(o1_01, 56, 142, 144, 145, 146 /*
-*/ 152, 160, 157, 188, 091    ), by(a01)
+*/ 152, 160, 157, 188, 901    ), by(a01)
 egen price_beans = mean(o1_07) if inlist(o1_01, ), by(a01)
 egen price_eggs = mean(o1_07) if inlist(o1_01, ), by(a01)
 egen price_dairy = mean(o1_07) if inlist(o1_01, ), by(a01)
