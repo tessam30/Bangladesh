@@ -24,10 +24,11 @@ do "$pathdo/07_shocks.do"
 do "$pathdo/08_remittances.do"
 do "$pathdo/09_foodSecurity.do"
 do "$pathdo/11_womensStatus.do"
+bob
 
 clear
-use "$pathout/shocks.dta"
-merge 1:1 a01 using "$pathin/001_mod_a_male.dta"
+use $pathout/shocks.dta
+merge 1:1 a01 using $pathin/001_mod_a_male.dta
 
 * Merge all data sets together
 local mlist hhchar hhinfra hhpc hhTLU_pc finances nc remittances foodSecurity womensStatus
@@ -37,30 +38,63 @@ foreach x of local mlist {
 	local i = `i' + 1
 	}
 *
-drop div
-
-* Bring in the geovaraibles
-merge 1:1 a01 using "$pathSensitive/Geovariables.dta", gen(geo_vars)
-
-* Export the food security variables for analysis in R
-preserve
-keep FCS dietDiversity 
-
-* Check all the variables for outliers
-
-
-
-
-
 
 * Encode the division and district names for use as dummies
 encode div_name, gen(divName)
 encode District_Name, gen(distName)
 
+* First model is looking at dietary diversity
+graph matrix dietDiversity femhead agehead ageheadsq marriedHead hhSize sexRatio depRatio literateHead educAdult
+
+* Model dietary diversity as both a OLS and poisson
+global ddexog1 "i.femhead agehead i.marriedHead hhSize sexRatio depRatio i.literateHead educAdult i.landless"
+global ddexog2 "$ddexog1 infraindex cultland" 
+reg dietDiversity $ddexog1 price_* ib(39).distName, robust
+
+* Now as a poisson with a zero-truncated model b/c the value zero cannot appear (households have to eat)
+tpoisson dietDiversity $ddexog1 price_* , ll(0) vce(robust) 
+est sto tpois1
+tpoisson dietDiversity $ddexog2 price_* ib(39).distName, ll(0) vce(robust)
+est sto tpois2
+est stat tpois1 tpois2
+
+
+
+
+
+
+
+
+
 * Set global exogenous variables for different model specifications
 global exog1 "femhead marriedHead agehead ageheadsq hhSize sexRatio depRatio hhlabor under15 literateHead educAdult"
-global exog2 "$exog1 distHealth distMarket infraindex agAssetWealth durwealth cultLand cultLandTot migrationNW"
+global exog2 "$exog1 distHealth distMarket infraindex agAssetWealth durwealth landless migrationNW"
 global exog3 "$exog2 waterAccess latrineSealed TLUtotal"
+
+*tabstat $endog $endog2, by(div_name)
+g byte nonResponse = shock_merge == 1
+la var nonResponse "Non response to shock module"
+la def resp 0 "Respondent" 1 "Non-respondent"
+la var nonResponse resp 
+
+* Non-response analysis for missing shock module; Can we predict who doesn't respond?
+* Division base is Dhaka ; District base is
+eststo divNR: logit nonResponse $exog2 ib(8).occupation ib(3).divName ib(3).Sample_type, robust or
+lroc, nograph
+predict xb1, xb
+
+eststo distNR: logit nonResponse $exog2 ib(8).occupation ib(39).distName ib(3).Sample_type, robust or
+lroc, nograph
+predict xb2, xb
+
+* Compare results from each model
+roccomp nonResponse xb1 xb2, graph summary
+
+* Create coefficient plots for the results and save it as .png
+coefplot distNR, xline(0, lwidth(thin) lcolor(gray)) mlabs(small) ylabel(, labsize(tiny)) /*
+*/ msize(small) mc(black) mlsty(black) mcolor(red) mlstyle(p1) xlabel(, labsize(small)) /*
+*/ title(Non-reponse Analysis Results, size(small) color(black)) scale(0.75) drop(_cons) 
+graph export "$pathgraph\Non_response_analysis.png", as(png) replace
 
 * Analyze household food consumption scores; First check for outliers and distribution of data
 twoway(kdensity FCS) //looks normalish
@@ -97,14 +131,15 @@ linktest
 ovtest //
 vif // Check for multicollinearity
 
+
 * Shock analysis; Look at shock rankings by district
 tabsort distName, su(healthshk) so(mean) 
 tabsort distName, su(healthshkR) so(mean) 
 
 set more off
 est clear
-local endog1 "healthshk hazardshk assetshk finshk priceshk othershk"
-local endog2 "healthshkR hazardshkR agshkR assetshkR finshkR priceshkR othershkR"
+local endog1 "healthshk floodshk agshk assetshk finshk priceshk othershk"
+local endog2 "healthshkR floodshkR agshkR assetshkR finshkR priceshkR othershkR"
 local shock "health flood ag asset financial price other"
 local n: word count `shock'
 local i = 1
