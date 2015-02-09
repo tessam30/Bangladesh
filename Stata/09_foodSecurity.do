@@ -156,6 +156,16 @@ g sugarFCS = sugar_days * 0.5
 egen oil_days = rowmax(x3_07_13)
 g oilFCS = oil_days * 0.5
 
+* Label the variables, get their averages and plot them on same graph to compare
+local ftype cereal tubers staples pulse veg fruit meat milk sugar oil 
+local n: word count `ftype'
+forvalues i = 1/`n' {
+	local a: word `i' of `ftype'
+	la var `a'_days "Number of days consuming `a'"
+
+}
+*end
+
 * Calculate overall FCS
 egen FCS = rsum2(staplesFCS pulseFCS vegFCS fruitFCS meatFCS milkFCS sugarFCS oilFCS)
 sum *FCS
@@ -263,16 +273,50 @@ forvalues i = 1/`n' {
 	local a: word `i' of `ptype'
 	la var price_`a' "Average price for `a'"
 	cap g `a' = 1
-	reg price_`a' `a', nocons
+	qui reg price_`a' `a', nocons
 	eststo fp`i'
+	drop `a' _est_fp`i'
 }
 *end
 
 * Plot averages and confidence bands for each price on same graph; Save it.
 coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9 fp10 fp11 fp12 fp13 fp14 fp15 fp16, legend(off)/*
-*/ title(Average food prices, size(small) color(black)) 
-graph export "$pathgraph\Ave_food_prices.png", as(png) replace name(Graph)
+*/ title(Average food prices, size(small) color(black))
+graph export "$pathgraph\Ave_food_prices.png", as(png) replace  width(800) height(600)
 
+* Keep prices and household identifier; Collapse and keep max average prices
+ds(o1* sample_type), not
+keep `r(varlist)'
+include "$pathdo/copylabels.do"
+collapse (max) price*, by(a01)
+include "$pathdo/attachlabels.do"
+
+merge 1:1 a01 using "$pathout/foodSecurity.dta", gen(fcs_merge)
+drop fcs_merge
+
+merge 1:1 a01 using "$pathin/001_mod_a_male.dta", gen(tmp)
+drop tmp 
+drop a02 a10 a11 a12 a13 a14 a15 a16_dd a16_mm a16_yy /*
+*/  a17_dd a17_mm a17_yy a18 a19 a20_dd a20_mm a20_yy a21 Flagaddl regnm
+
+* Replace missing values for food prices with the median value at the village/district/division level
+local flist wheat rice starch cereal veg fruit beans eggs dairy meat poultry fish fats sugar condiments nuts
+foreach x of local flist {
+	cap egen `x'tmp  = median(price_`x'), by(vcode_n)
+	cap egen `x'tmp2 = median(price_`x'), by(dcode)
+	cap egen `x'tmp3 = median(price_`x'), by(div)
+	
+	replace price_`x' = `x'tmp  if price_`x' == .
+	replace price_`x' = `x'tmp2 if price_`x' == .
+	replace price_`x' = `x'tmp3 if price_`x' == .	
+	
+	drop `x'tmp*
+	
+}
+*end
+compress
+
+save "$pathout/foodSecurity.dta", replace
 
 capture log close
 log2html "$pathlog/09_foodSecurity", replace
