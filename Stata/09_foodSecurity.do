@@ -196,14 +196,14 @@ preserve
 keep staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days FCS a01 div_name District_Name Upazila_Name
 order FCS staples_days meat_days veg_days oil_days sugar_days fruit_days pulse_days milk_days a01 div_name District_Name Upazila_Name
 rename *_days* *
-export delimited using "$pathexport\food.consumption.score.csv", replace 
+qui export delimited using "$pathexport\food.consumption.score.csv", replace 
 restore
 
 * Create an export for making diet diversity plots in R
 preserve
 keep dietDiversity a01 div_name District_Name Upazila_Name
 order dietDiversity a01 div_name District_Name Upazila_Name
-export delimited using "$pathexport\diet.diversity.csv", replace 
+qui export delimited using "$pathexport\diet.diversity.csv", replace 
 restore
 
 keep sample_type foodLack dietDiversity FCS FCS_categ cereal_days tubers_days staples_days pulse_days /*
@@ -214,33 +214,64 @@ save "$pathout/foodSecurity.dta", replace
 clear
 
 use "$pathin/031_mod_o1_female.dta", replace
-egen price_wheat = mean(o1_07) if inlist(o1_01, 5, 6, 7, 8, 9), by(a01)
-egen price_rice = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12), by(a01)
-egen price_starch = mean(o1_07) if inlist(o1_01, 14, 61, 62), by(a01)
-egen price_cereal = mean(o1_07) if inlist(o1_01, 13,  15, 16,  ), by(a01)
-egen price_vegetables = mean(o1_07) if inlist(o1_01, 27, 42, 43, 44 */
-*/ 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 57, 58, 64, 65, 69, 72, 73 /*
-*/ 80, 86, 90, 910), by(a01)
-egen price_fruit = mean(o1_07) if inlist(o1_01, 56, 142, 144, 145, 146 /*
-*/ 152, 160, 157, 188, 901    ), by(a01)
-egen price_beans = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_eggs = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_dairy = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_meat = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_poultry = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_fish = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_fats = mean(o1_07) if inlist(o1_01, 34, 35, 36, 903), by(a01)
-egen price_sugar = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_condiments = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_nuts = mean(o1_07) if inlist(o1_01, ), by(a01)
-egen price_tobacco = mean(o1_07) if inlist(o1_01, 314, 315, 316, ), by(a01)
+egen price_wheat = mean(o1_07) if inlist(o1_01, 5, 6, 7, 8, 9, 213, 279, /*
+*/ 281, 282, 285, 296, 297, 299, 301, 303, 306, 311), by(a01)
 
+egen price_rice = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12, 277, 280), by(a01)
+egen price_starch = mean(o1_07) if inlist(o1_01, 14, 61, 62, 55), by(a01)
+egen price_cereal = mean(o1_07) if inlist(o1_01, 5, 6, 8, 13,  15, 16, 901), by(a01)
 
+egen price_vegetables = mean(o1_07) if inlist(o1_01, 25, 27, 42, 43, /*
+*/ 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 57, 58, 59, 60, 64, /*
+*/ 65, 69, 70, 72, 73, 76, 80, 80, 86, 87, 88, 93, 94, 97, 101, 102, /*
+*/ 103, 104, 105, 106, 107, 109, 111, 114, 254, 287, 288, 292, 295, /*
+*/ 904, 905), by(a01)
 
+egen price_fruit = mean(o1_07) if inlist(o1_01, 56, 56, 63, 71, 74, 141, 142, 144, /*
+*/ 145, 147, 148, 149, 151, 152, 154, 155, 156, 157, 160, 161, 166, 167, 168, 274, 907), by(a01)
 
+egen price_beans = mean(o1_07) if inlist(o1_01, 21, 22 /* 
+*/ 23, 24, 26, 31, 78, 112, 291, 298, 302, 902), by(a01)
 
+egen price_eggs = mean(o1_07) if inlist(o1_01, 130, 289), by(a01)
+egen price_dairy = mean(o1_07) if inlist(o1_01, 132, 133, 134, 294, 321), by(a01)
 
+egen price_meat = mean(o1_07) if inlist(o1_01, 121, 122, /* 
+*/126,  127, 128, 129, 164, 203, 283, 290, 322, 906), by(a01)
 
+egen price_poultry = mean(o1_07) if inlist(o1_01, 123, 124, 125), by(a01)
+
+egen price_fish = mean(o1_07) if inlist(o1_01, 131, 176, 177, 178, 181, /*
+*/ 184, 186, 187, 188, 189, 190, 191, 192, 193, 194, 196, 198, 204, 205, /*
+*/ 211, 214, 215, 223, 230, 238, 240, 241, 242, 243, 908, 909), by(a01)
+
+egen price_fats = mean(o1_07) if inlist(o1_01, 34, 35, 36, 903, 135), by(a01)
+
+egen price_sugar = mean(o1_07) if inlist(o1_01, 162 /*
+*/ 212, 253, 271, 276, 293, 304, 307, 266, 267), by(a01)
+
+egen price_condiments = mean(o1_07) if inlist(o1_01, 32, 150, 153, 158, /*
+*/  247, 248, 251, 252, 257, 264, 269, 272, 300, 308, 910), by(a01)
+
+egen price_nuts = mean(o1_07) if inlist(o1_01, 79, 146, 163, 259, 270), by(a01)
+*egen price_tobacco = mean(o1_07) if inlist(o1_01, 314, 315, 316), by(a01)
+
+* Label the variables, get their averages and plot them on same graph to compare
+local ptype wheat rice starch cereal veg fruit beans eggs dairy meat poultry fish fats sugar condiments nuts
+local n: word count `ptype'
+forvalues i = 1/`n' {
+	local a: word `i' of `ptype'
+	la var price_`a' "Average price for `a'"
+	cap g `a' = 1
+	reg price_`a' `a', nocons
+	eststo fp`i'
+}
+*end
+
+* Plot averages and confidence bands for each price on same graph; Save it.
+coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9 fp10 fp11 fp12 fp13 fp14 fp15 fp16, legend(off)/*
+*/ title(Average food prices, size(small) color(black)) 
+graph export "$pathgraph\Ave_food_prices.png", as(png) replace name(Graph)
 
 
 capture log close
