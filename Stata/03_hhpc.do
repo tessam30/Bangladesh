@@ -150,7 +150,7 @@ loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	*/ title(Household durable wealth index loadings)
 *graph export "$pathgraph\durwealthLoadings.png", as(png) replace
 scree, title(Scree plot of durable wealth index)
-*graph export "$pathgragh\durwealthScree.png", as(png) replace
+*graph export "$pathgraph\durwealthScree.png", as(png) replace
 
 * Generate variable reflecting fungible wealth
 g fungWealth = jewelryVal + cashOnHand
@@ -250,7 +250,7 @@ qui loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	*/ title(Household wealth ag index loadings)
 *qui graph export "$pathgraph\agwealthLoadings.png", as(png) replace
 qui scree, title(Scree plot of ag wealth index)
-*qui graph export "$pathgragh\agwealthScree.png", as(png) replace
+*qui graph export "$pathgraph\agwealthScree.png", as(png) replace
 
 * Merge durables with agricultural implement assets
 merge 1:1 a01  using "$pathout/hhdurables.dta", gen(assets)
