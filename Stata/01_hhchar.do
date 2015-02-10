@@ -3,7 +3,7 @@
 # Purpose:	Process household data and create hh characteristic variables
 # Author:	Tim Essam, Ph.D.
 # Created:	2014/11/05
-# Modified: 2014/11/05
+# Modified: 2014/12/17
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
 # Ado(s):	labutil, labutil2 (ssc install labutil, labutil2)
@@ -147,6 +147,22 @@ la var under15Share "share of hh members under 15"
 g under24Share = under24/hhSize
 la var under24Share "share of hh members under 24"
 
+* Generate adult equivalents in household
+g male10 	= 1
+g fem10_19 	= 0.84
+g fem20		= 0.72
+g child10	= 0.60
+
+g ae = .
+replace ae = male10 if (b1_02 >=10 ) & male == 1
+replace ae = fem10_19 if (b1_02 >= 10 & b1_02 < 20) & male ~=1
+replace ae = fem20 if (b1_02 >= 20) & male ~=1
+replace ae = child10 if (b1_02) < 10 
+la var ae "Adult equivalents"
+
+egen adultEquiv = total(ae), by(a01)
+la var adultEquiv "Total adult equivalent units"
+
 * drop temp variables
 drop under15t under24t
 
@@ -202,6 +218,13 @@ g educHoh = educ if hoh==1
 la var educAdult "Highest adult education in household"
 la var educHoh "Education of Hoh"
 
+* Create dummys distinguishing between women's and men's education in same hh
+g byte primFem = (b1_01 == 2) & (b1_02>15) & (educ == 2)
+g byte secondFem = (b1_01 == 2) & (b1_02>15) & (educ == 4)
+
+g byte primMale = (b1_01 == 1) & (b1_02>15) & (educ == 2)
+g byte secondMale = (b1_01 == 1) & (b1_02>15) & (educ == 4)
+
 /* Main occupation of household head
 1. Ag day laborer
 2. Non-ag day laborer
@@ -245,7 +268,7 @@ include "$pathdo/copylabels.do"
 		hhlabor mlabor flabor mlaborShare flaborShare under15 
 		under15male under24 under24male under15Share under24Share 
 		literateHead spouseLit educ educAdult educHoh occupation
-		widowFemhead
+		widowFemhead adultEquiv primFem secondFem primMale secondMale
 		sample_type, by(a01) fast;
 #delimit cr
 order a01
