@@ -131,9 +131,11 @@ g cerealFCS = cereal_days * 2
 egen tubers_days = rowmax(x3_07_3)
 g tubersFCS = tubers_days * 2
 
+* wheat, rice, cereal, starch
 egen staples_days = rowmax(x3_07_1 x3_07_2 x3_07_4 x3_07_3)
 g staplesFCS = staples_days * 2
 
+* legumes, beans, lentils, nuts, peas & nuts and seeds
 egen pulse_days = rowmax(x3_07_7 x3_07_16)
 g pulseFCS = pulse_days * 3
 
@@ -144,7 +146,8 @@ g vegFCS = veg_days
 egen fruit_days = rowmax(x3_07_6)
 g fruitFCS = fruit_days
 
-egen meat_days = rowmax(x3_07_10 x3_07_11 x3_07_12)
+* meat, poultry, fish
+egen meat_days = rowmax(x3_07_08 x3_07_10 x3_07_11 x3_07_12)
 g meatFCS = meat_days * 4
 
 egen milk_days = rowmax(x3_07_9)
@@ -155,6 +158,16 @@ g sugarFCS = sugar_days * 0.5
 
 egen oil_days = rowmax(x3_07_13)
 g oilFCS = oil_days * 0.5
+
+* Create second dietary diversity index using 10 base foods from WFP FCS
+local flist staples pulse veg fruit meat milk sugar oil 
+foreach x of local flist {
+	g byte tmp`x' = `x'_days >0
+	}
+*end
+egen dietDivFCS = rsum2(tmpstaples tmppulse tmpveg tmpfruit tmpmeat tmpmilk tmpsugar tmpoil)
+la var dietDivFCS "Dietary diversity based on FCS groups"
+
 
 * Label the variables, get their averages and plot them on same graph to compare
 local ftype cereal tubers staples pulse veg fruit meat milk sugar oil 
@@ -283,6 +296,41 @@ forvalues i = 1/`n' {
 coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9 fp10 fp11 fp12 fp13 fp14 fp15 fp16, legend(off)/*
 */ title(Average food prices, size(small) color(black))
 graph export "$pathgraph\Ave_food_prices.png", as(png) replace  width(800) height(600)
+
+/* Do same groupings but for FCS groups: cereal tubers staples pulse veg fruit meat milk sugar oil 
+staples = wheat, rice, cereal, starch
+pulse = legumes, beans, lentils, nuts, peas & nuts and seeds
+veg = veg
+fruit = fruit
+meat and fish = meat, chicken, fish, eggs
+milk = dairy
+sugar
+oil
+condiments
+*/
+egen price_staples = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12, 277, 280, /* rice
+						*/ 5, 6, 7, 8, 9, 213, 279, 281, 282, 285, 296, 297, 299, /*
+						*/ 301, 303, 306, 311, /* wheat */ 14, 61, 62, 55 /* starch */ /*
+						*/ 5, 6, 8, 13,  15, 16, 901), by(a01)
+
+), by(a01)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 * Keep prices and household identifier; Collapse and keep max average prices
 ds(o1* sample_type), not
