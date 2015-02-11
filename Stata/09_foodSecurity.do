@@ -229,7 +229,7 @@ order dietDiversity a01 div_name District_Name Upazila_Name
 qui export delimited using "$pathexport\diet.diversity.csv", replace 
 restore
 
-keep sample_type foodLack dietDiversity FCS FCS_categ cereal_days tubers_days staples_days pulse_days /*
+keep sample_type foodLack dietDiversity FCS dietDivFCS FCS_categ cereal_days tubers_days staples_days pulse_days /*
 */ veg_days fruit_days meat_days milk_days sugar_days oil_days a01
 save "$pathout/foodSecurity.dta", replace
 
@@ -343,6 +343,7 @@ egen FCS_price_fats = mean(o1_07) if inlist(o1_01, 34, 35, 36, 903, 135), by(a01
 egen FCS_price_condiments = mean(o1_07) if inlist(o1_01, 32, 150, 153, 158, /*
 */  247, 248, 251, 252, 257, 264, 269, 272, 300, 308, 910), by(a01)
 
+* Create summary statistics of each food for plotting
 est clear 
 local fcstype staples pulse veg fruit fish dairy sugar fats condiments
 local n: word count `fcstype'
@@ -387,7 +388,6 @@ foreach x of local flist {
 	replace price_`x' = `x'tmp3 if price_`x' == .	
 	
 	drop `x'tmp*
-	
 }
 *end
 
@@ -403,8 +403,7 @@ foreach x of local fcstype {
 	replace FCS_price_`x' = `x'tmp3 if FCS_price_`x' == .	
 	
 	drop `x'tmp*
-	
-}
+	}
 *end
 compress
 
