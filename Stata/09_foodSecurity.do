@@ -146,8 +146,8 @@ g vegFCS = veg_days
 egen fruit_days = rowmax(x3_07_6)
 g fruitFCS = fruit_days
 
-* meat, poultry, fish
-egen meat_days = rowmax(x3_07_08 x3_07_10 x3_07_11 x3_07_12)
+* meat, poultry, fish, eggs
+egen meat_days = rowmax(x3_07_8 x3_07_10 x3_07_11 x3_07_12)
 g meatFCS = meat_days * 4
 
 egen milk_days = rowmax(x3_07_9)
@@ -308,35 +308,63 @@ sugar
 oil
 condiments
 */
-egen price_staples = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12, 277, 280, /* rice
-						*/ 5, 6, 7, 8, 9, 213, 279, 281, 282, 285, 296, 297, 299, /*
-						*/ 301, 303, 306, 311, /* wheat */ 14, 61, 62, 55 /* starch */ /*
-						*/ 5, 6, 8, 13,  15, 16, 901), by(a01)
+egen FCS_price_staples = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12, 277, 280, /* rice
+			*/ 5, 6, 7, 8, 9, 213, 279, 281, 282, 285, 296, 297, 299, /*
+			*/ 301, 303, 306, 311, /* wheat */ 14, 61, 62, 55 /* starch */ /*
+			*/ 5, 6, 8, 13,  15, 16, 901), by(a01)
 
-), by(a01)
+egen FCS_price_pulse = mean(o1_07) if inlist(o1_01, 21, 22 /* 
+			*/ 23, 24, 26, 31, 78, 112, 291, 298, 302, 902, /*
+			*/ 79, 146, 163, 259, 270, 27, 70), by(a01)
 
+egen FCS_price_veg = mean(o1_07) if inlist(o1_01, 25, 42, 43, /*
+*/ 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 57, 58, 59, 60, 64, /*
+*/ 65, 69, 72, 73, 76, 80, 80, 86, 87, 88, 93, 94, 97, 101, 102, /*
+*/ 103, 104, 105, 106, 107, 109, 111, 114, 254, 287, 288, 292, 295, /*
+*/ 904, 905), by(a01)
 
+egen FCS_price_fruit = mean(o1_07) if inlist(o1_01, 56, 56, 63, 71, 74, /*
+*/ 141, 142, 144, 145, 147, 148, 149, 151, 152, 154, 155, 156, 157, /*
+*/ 160, 161, 166, 167, 168, 274, 907), by(a01)
 
+egen FCS_price_fish = mean(o1_07) if inlist(o1_01, 131, 176, 177, 178, 181, /*
+*/ 184, 186, 187, 188, 189, 190, 191, 192, 193, 194, 196, 198, 204, 205, /*
+*/ 211, 214, 215, 223, 230, 238, 240, 241, 242, 243, 908, 909 /*fish */ /*
+*/ 121, 122, 126,  127, 128, 129, 164, 203, 283, 290, 322, 906 /* meat */ /*
+*/ 123, 124, 125 /* poultry */, 130, 289 /* eggs */ ), by(a01)
 
+egen FCS_price_dairy = mean(o1_07) if inlist(o1_01, 132, 133, 134, 294, 321), by(a01)
 
+egen FCS_price_sugar = mean(o1_07) if inlist(o1_01, 162 /*
+*/ 212, 253, 271, 276, 293, 304, 307, 266, 267), by(a01)
 
+egen FCS_price_fats = mean(o1_07) if inlist(o1_01, 34, 35, 36, 903, 135), by(a01)
 
+egen FCS_price_condiments = mean(o1_07) if inlist(o1_01, 32, 150, 153, 158, /*
+*/  247, 248, 251, 252, 257, 264, 269, 272, 300, 308, 910), by(a01)
 
+est clear 
+local fcstype staples pulse veg fruit fish dairy sugar fats condiments
+local n: word count `fcstype'
+forvalues i = 1/`n' {
+	local a: word `i' of `fcstype'
+	la var FCS_price_`a' "Average price for `a'"
+	cap g `a' = 1
+	qui reg FCS_price_`a' `a', nocons
+	eststo fp`i'
+	drop `a' _est_fp`i'
+}
+*end
 
-
-
-
-
-
-
-
-
+coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9, legend(off)/*
+*/ title(Average food prices, size(small) color(black))
+graph export "$pathgraph\Ave_FCS_prices.png", as(png) replace  width(800) height(600)
 
 * Keep prices and household identifier; Collapse and keep max average prices
 ds(o1* sample_type), not
 keep `r(varlist)'
 include "$pathdo/copylabels.do"
-collapse (max) price*, by(a01)
+collapse (max) price* FCS_price*, by(a01)
 include "$pathdo/attachlabels.do"
 
 merge 1:1 a01 using "$pathout/foodSecurity.dta", gen(fcs_merge)
@@ -357,6 +385,22 @@ foreach x of local flist {
 	replace price_`x' = `x'tmp  if price_`x' == .
 	replace price_`x' = `x'tmp2 if price_`x' == .
 	replace price_`x' = `x'tmp3 if price_`x' == .	
+	
+	drop `x'tmp*
+	
+}
+*end
+
+* Repeate for food consumption scores as well
+local fcstype staples pulse veg fruit fish dairy sugar fats condiments
+foreach x of local fcstype {
+	cap egen `x'tmp  = median(FCS_price_`x'), by(vcode_n)
+	cap egen `x'tmp2 = median(FCS_price_`x'), by(dcode)
+	cap egen `x'tmp3 = median(FCS_price_`x'), by(div)
+	
+	replace FCS_price_`x' = `x'tmp  if FCS_price_`x' == .
+	replace FCS_price_`x' = `x'tmp2 if FCS_price_`x' == .
+	replace FCS_price_`x' = `x'tmp3 if FCS_price_`x' == .	
 	
 	drop `x'tmp*
 	
