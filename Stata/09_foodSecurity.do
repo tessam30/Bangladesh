@@ -277,7 +277,8 @@ egen price_condiments = mean(o1_07) if inlist(o1_01, 32, 150, 153, 158, /*
 */  247, 248, 251, 252, 257, 264, 269, 272, 300, 308, 910), by(a01)
 
 egen price_nuts = mean(o1_07) if inlist(o1_01, 79, 146, 163, 259, 270), by(a01)
-*egen price_tobacco = mean(o1_07) if inlist(o1_01, 314, 315, 316), by(a01)
+
+* egen price_tobacco = mean(o1_07) if inlist(o1_01, 314, 315, 316), by(a01)
 
 * Label the variables, get their averages and plot them on same graph to compare
 local ptype wheat rice starch cereal veg fruit beans eggs dairy meat poultry fish fats sugar condiments nuts
