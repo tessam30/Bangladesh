@@ -31,8 +31,8 @@ foreach x of local required_ados {
 *end
 
 * Determine path for the study 
-*global projectpath "U:\"
-global projectpath "C:\Users\t\Box Sync\"
+global projectpath "U:\"
+*global projectpath "C:\Users\t\Box Sync\"
 cd "$projectpath"
 
 * Run a macro to set up study folder (needs to be modified)
@@ -68,9 +68,7 @@ foreach dir in `folders' {
 global date $S_DATE
 local dir `c(pwd)'
 global path "`dir'"
-*global pathdo "\Stata"
-* Home directory
-global pathdo "C:\Users\t\Documents\GitHub\Bangladesh\Stata"
+global pathdo "`dir'\Stata"
 global pathlog  "`dir'\Log"
 global pathin "`dir'\Datain"
 global pathout "`dir'\Dataout"
@@ -88,6 +86,24 @@ global pathSensitive "`dir'\Sensitive_Data"
 
 * Project macros are defined as:
 macro list 
+
+/* Check and load custom programs created for project
+1. cnumlist - creates comma separated number lists; useful with inlist command
+*/
+
+* Ensure that you have comma number list program access
+qui local required_file cnumlist
+qui foreach x of local required_file { 
+	 capture findfile `x'.do, path($pathdo)
+		if _rc==601 {
+			noi disp in red "Please verify `x'.do function has been included in the do files"
+			* Create an exit conditions based on whether or not file is found.
+			if _rc==601 exit = 1
+		}
+		else do "$pathdo/cnumlist.do"
+		noi disp in yellow "Comma separated numlist enabled"
+	}
+*end
 
 /*------------------------------------------------------------
 # Manually copy raw data  into Datain Folder #
