@@ -6,7 +6,8 @@
 # Modified: 2015/02/11
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
-# Ado(s):	distinct
+# Ado(s):	distinct; 
+# programs: 
 # Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
 #-------------------------------------------------------------------------------
 */
@@ -29,17 +30,23 @@ foreach x of local mlist {
 drop div
 merge 1:1 a01 using "U:\Bangladesh\Sensitive_Data\Geovariables.dta", gen(_mergegps)
 
+* Export a cut of food security variable to CSV for mapping
+preserve
+keep a01 latitude longitude FCS FCS_categ dietDiversity  dietDiv2 foodLack  Sample_type priceshkR priceshk 
+export delimited using "$pathexport\foodsecurity.csv", replace
+restore
+
 * Encode the division and district names for use as dummies
 encode div_name, gen(divName)
 encode District_Name, gen(distName)
 
 * Look at the distribution of FCS and diet diversity by district
-twoway (histogram dietDiversity, discrete), by(div_name District_Name)
-twoway (histogram dietDivFCS, discrete), by(div_name District_Name)
-twoway (kdensity FCS), by(div_name District_Name)
+*twoway (histogram dietDiversity, discrete), by(div_name District_Name)
+*twoway (histogram dietDivFCS, discrete), by(div_name District_Name)
+*twoway (kdensity FCS), by(div_name District_Name)
 
 * Summarize the data
-tabstat dietDiversity dietDivFCS FCS, stats(mean sd p25 p50 p75 n)
+tabstat dietDiversity dietDiv2 dietDivFCS FCS, by(divName) stats(mean sd p25 p50 p75 n)
 
 * Define possible exogenous variables
 global ddexog1 "femhead agehead marriedHead sexRatio adultEquiv landless primFem primMale secondFem secondMale"
@@ -50,9 +57,9 @@ global geo "ib(39).distName ib(3).Sample_type"
 
 * Set dietary diversity price macro to obtain all food groups
 #delimit ;
-global DDprice "price_wheat price_rice price_starch price_cereal price_vegetables price_fruit 
-				price_beans price_eggs price_dairy price_meat price_poultry price_fish 
-				price_fats price_sugar price_condiments price_nuts";
+global DDprice "dd_price_wheat dd_price_rice dd_price_starch dd_price_cereal dd_price_vegetables 
+		dd_price_fruit dd_price_beans dd_price_eggs dd_price_dairy dd_price_meat dd_price_poultry 
+		dd_price_fish dd_price_fats dd_price_sugar dd_price_condiments dd_price_nuts dd_price_tobacco";
 #delimit cr
 
 ***************************
@@ -62,16 +69,19 @@ global DDprice "price_wheat price_rice price_starch price_cereal price_vegetable
 * Model food consumption score as an OLS, using robust standard errors
 est clear
 qui eststo fcs, title("FCS OLS"): reg FCS $ddexog1 $FCSprice, vce(robust)
-qui eststo fcs1, title("FCS OLS"): reg FCS $ddexog1 $FCSprice  $geo, vce(robust)
-qui eststo fcs2, title("FCS OLS"): reg FCS $ddexog2 $FCSprice  $geo, vce(robust)
+qui eststo fcs2, title("FCS OLS"): reg FCS $ddexog2 $FCSprice, vce(robust)
+qui eststo fcs3, title("FCS OLS"): reg FCS $ddexog3 $FCSprice, vce(robust)
 qui eststo fcs3, title("FCS OLS"): reg FCS $ddexog3 $FCSprice  $geo, vce(robust)
+est stats fcs*
 
 esttab, se star(* 0.10 ** 0.05 *** 0.01) label 
+
 esttab using "$pathreg/FCS.OLS.txt", replace wide plain se mlabels(none) label
 
-coefplot fcs || fcs1 || fcs2 || fcs3 , xline(0, lwidth(thin) lcolor(gray)) mlabs(small) ylabel(, labsize(tiny)) /*
+* Create a coefficient plot of the main covariates
+coefplot fcs || fcs2 || fcs3 , xline(0, lwidth(thin) lcolor(gray)) mlabs(small) ylabel(, labsize(tiny)) /*
 */ msize(small) /*mc(black) mlsty(black) mcolor(red) mlstyle(p1)*/ xlabel(, labsize(small)) cismooth norecycle/*
-*/ scale(0.75) drop(_cons) keep($ddexog3 $FCSprice)
+*/ scale(0.75) drop(_cons) keep($ddexog3 $FCSprice) 
 
 * Only looking at geographic effects
 coefplot fcs1 || fcs2 || fcs3 , xline(0, lwidth(thin) lcolor(gray)) mlabs(small) ylabel(, labsize(tiny)) /*
@@ -131,21 +141,17 @@ coefplot ddPOI  ddTPOI ddTPOI2, xline(1, lwidth(thin) lcolor(gray)) mlabs(small)
 */ msize(small)  xlabel(, labsize(small)) cismooth /*
 */ scale(1) drop(_cons) keep($ddexog3 $FCSprice) eform
 
-
-
 ****************
 * Lacking food *
 ****************
-recode foodLack (0=1 1=0)
 
 *What determines whether or not food is lacking within a household?
 eststo fl1: logit foodLack $ddexog1 $FCSprice, or robust
 eststo fl2: logit foodLack $ddexog3 $FCSprice, or robust
 eststo fl2: logit foodLack $ddexog3 $FCSprice i.divName, or robust
 
-
 *STOPPED HERE
-bob
+
 
 
 
