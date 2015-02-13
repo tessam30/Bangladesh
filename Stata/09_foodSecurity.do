@@ -7,7 +7,8 @@
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
 # License:	MIT License
 # Ado(s):	distinct
-# Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
+# Dependencies: For translation of food items see FAO doc here: 
+# (http://www.fao.org/fileadmin/templates/food_composition/documents/FCT_10_2_14_final_version.pdf)
 #-------------------------------------------------------------------------------
 */
 clear
@@ -83,6 +84,10 @@ use "$pathin/051_mod_x3_female.dta", clear
 g byte foodLack = x3_01 == 1
 la var foodLack "lack of resources to get food in last 4 weeks"
 
+
+
+*########## Full Dietary Diversity *17 food groups) ##########
+
 * Every variable should have 8 distinct values (not the case!)
 distinct x3_07*
 
@@ -113,6 +118,10 @@ foreach x of local foodlist {
 egen dietDiversity = rsum2(bread rice tubers cereal veg fruit pulse /*
 */ egg dairy meat poultry fish oil sweet cond nut tobacco)
 la var dietDiversity "Dietary diversity based on number of foods consumed"
+recode dietDiversity (17 = 15)
+
+
+*########## Food Consumption Scores ##########
 
 /* Calculate Food Consumption Score based on WFP methodology
 * https://github.com/tessam30/Bangladesh/wiki/Food-Security-Notes
@@ -163,11 +172,11 @@ g oilFCS = oil_days * 0.5
 local flist staples pulse veg fruit meat milk sugar oil 
 foreach x of local flist {
 	g byte tmp`x' = `x'_days >0
+	
 	}
 *end
 egen dietDivFCS = rsum2(tmpstaples tmppulse tmpveg tmpfruit tmpmeat tmpmilk tmpsugar tmpoil)
 la var dietDivFCS "Dietary diversity based on FCS groups"
-
 
 * Label the variables, get their averages and plot them on same graph to compare
 local ftype cereal tubers staples pulse veg fruit meat milk sugar oil 
@@ -219,84 +228,142 @@ preserve
 keep staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days FCS a01 div_name District_Name Upazila_Name
 order FCS staples_days meat_days veg_days oil_days sugar_days fruit_days pulse_days milk_days a01 div_name District_Name Upazila_Name
 rename *_days* *
-qui export delimited using "$pathexport\food.consumption.score.csv", replace 
+*qui export delimited using "$pathexport\food.consumption.score.csv", replace 
 restore
 
 * Create an export for making diet diversity plots in R
 preserve
 keep dietDiversity a01 div_name District_Name Upazila_Name
 order dietDiversity a01 div_name District_Name Upazila_Name
-qui export delimited using "$pathexport\diet.diversity.csv", replace 
+*qui export delimited using "$pathexport\diet.diversity.csv", replace 
 restore
 
+* Keep select variables for now, can go back and pull in shares if needed.
 keep sample_type foodLack dietDiversity FCS dietDivFCS FCS_categ cereal_days tubers_days staples_days pulse_days /*
 */ veg_days fruit_days meat_days milk_days sugar_days oil_days a01
 save "$pathout/foodSecurity.dta", replace
 
+
+***************
+* FOOD PRICES *
+***************
+
 * Construct food prices for dietary diversity and FCS scores
+* Create another dietary Diveristy metric based on 12 major food groups identified
+* Refer to page 47 onward of 001_bangladesh_ihs_questionnaire
 clear
-
 use "$pathin/031_mod_o1_female.dta", replace
-egen price_wheat = mean(o1_07) if inlist(o1_01, 5, 6, 7, 8, 9, 213, 279, /*
-*/ 281, 282, 285, 296, 297, 299, 301, 303, 306, 311), by(a01)
 
-egen price_rice = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12, 277, 280), by(a01)
-egen price_starch = mean(o1_07) if inlist(o1_01, 14, 61, 62, 55), by(a01)
-egen price_cereal = mean(o1_07) if inlist(o1_01, 5, 6, 8, 13,  15, 16, 901), by(a01)
+***************************
+* Food groups pp 47-57 *
+***************************
 
-egen price_vegetables = mean(o1_07) if inlist(o1_01, 25, 27, 42, 43, /*
-*/ 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 57, 58, 59, 60, 64, /*
-*/ 65, 69, 70, 72, 73, 76, 80, 80, 86, 87, 88, 93, 94, 97, 101, 102, /*
-*/ 103, 104, 105, 106, 107, 109, 111, 114, 254, 287, 288, 292, 295, /*
-*/ 904, 905), by(a01)
+* Cereal are items 1/16 + 901 on pg. 47
+cnumlist "1/16 901"
+bys a01: g byte cerealCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))
+egen price_cereal = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)
 
-egen price_fruit = mean(o1_07) if inlist(o1_01, 56, 56, 63, 71, 74, 141, 142, 144, /*
-*/ 145, 147, 148, 149, 151, 152, 154, 155, 156, 157, 160, 161, 166, 167, 168, 274, 907), by(a01)
+cnumlist "21/28 902"
+bys a01: g byte pulseCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))	
+egen price_pulse = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)
 
-egen price_beans = mean(o1_07) if inlist(o1_01, 21, 22 /* 
-*/ 23, 24, 26, 31, 78, 112, 291, 298, 302, 902), by(a01)
+cnumlist "31/36 903"
+bys a01: g byte oilCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))
+egen price_oil = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)	
 
-egen price_eggs = mean(o1_07) if inlist(o1_01, 130, 289), by(a01)
-egen price_dairy = mean(o1_07) if inlist(o1_01, 132, 133, 134, 294, 321), by(a01)
+cnumlist "41/82 904 86/115 906"
+bys a01: g byte vegCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))
+egen price_veg = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)
 
-egen price_meat = mean(o1_07) if inlist(o1_01, 121, 122, /* 
-*/126,  127, 128, 129, 164, 203, 283, 290, 322, 906), by(a01)
+cnumlist "121/135 906"
+bys a01: g byte meatCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))
+egen price_meat = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)
 
-egen price_poultry = mean(o1_07) if inlist(o1_01, 123, 124, 125), by(a01)
+cnumlist "141/170 907"
+bys a01: g byte fruitCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))
+egen price_fruit = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)
 
-egen price_fish = mean(o1_07) if inlist(o1_01, 131, 176, 177, 178, 181, /*
-*/ 184, 186, 187, 188, 189, 190, 191, 192, 193, 194, 196, 198, 204, 205, /*
-*/ 211, 214, 215, 223, 230, 238, 240, 241, 242, 243, 908, 909), by(a01)
+cnumlist "176/205 908 211/243 909"
+bys a01: g byte fishCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))
+egen price_fish = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)	
 
-egen price_fats = mean(o1_07) if inlist(o1_01, 34, 35, 36, 903, 135), by(a01)
+cnumlist "246/264 910"
+bys a01: g byte spiceCons = 1 if (o1_02 == 1) & (inlist (o1_01, `r(numlist)'))
+egen price_spice = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)	
 
-egen price_sugar = mean(o1_07) if inlist(o1_01, 162 /*
-*/ 212, 253, 271, 276, 293, 304, 307, 266, 267), by(a01)
+cnumlist "266/271"
+bys a01: g sugarCons = 1 if (o1_02 == 1) & (inlist(o1_01, `r(numlist)'))	
+egen price_sugar = mean(o1_07) if (inlist (o1_01, `r(numlist)')), by(a01)
 
-egen price_condiments = mean(o1_07) if inlist(o1_01, 32, 150, 153, 158, /*
-*/  247, 248, 251, 252, 257, 264, 269, 272, 300, 308, 910), by(a01)
-
-egen price_nuts = mean(o1_07) if inlist(o1_01, 79, 146, 163, 259, 270), by(a01)
-
-* egen price_tobacco = mean(o1_07) if inlist(o1_01, 314, 315, 316), by(a01)
-
-* Label the variables, get their averages and plot them on same graph to compare
-local ptype wheat rice starch cereal veg fruit beans eggs dairy meat poultry fish fats sugar condiments nuts
-local n: word count `ptype'
+local flist "cereal pulse oil veg meat fruit fish spice sugar"
+local n: word count `flist'
 forvalues i = 1/`n' {
-	local a: word `i' of `ptype'
-	la var price_`a' "Average price for `a'"
-	cap g `a' = 1
-	qui reg price_`a' `a', nocons
-	eststo fp`i'
-	drop `a' _est_fp`i'
+	local a: word `i' of `flist'
+	replace `a'Cons = 0 if `a'Cons ==.
 }
 *end
 
-* Plot averages and confidence bands for each price on same graph; Save it.
-coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9 fp10 fp11 fp12 fp13 fp14 fp15 fp16, legend(off)/*
-*/ title(Average food prices, size(small) color(black))
-graph export "$pathgraph\Ave_food_prices.png", as(png) replace  width(800) height(600)
+***************************
+* Dietary Diversity pp 90 *
+***************************
+
+* Generate prices for each of the 17 foodgroups identified from food security mod (pp. 90) 
+cnumlist "5/10 901"
+egen dd_price_wheat = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "1/4 11/12"
+egen dd_price_rice = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+cnumlist "61 62 55"
+egen dd_price_starch = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "5 13 14 15"
+egen dd_price_cereal = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+cnumlist "41/60 63/82 904 86/115 906"
+egen dd_price_vegetables = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+cnumlist "141/170 907"
+egen dd_price_fruit = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "21/28 902" 
+egen dd_price_beans = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+cnumlist "130 131"
+egen dd_price_eggs = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "132/135"
+egen dd_price_dairy = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+cnumlist " 121 122 126/129 906"
+egen dd_price_meat = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "123 124 125"
+egen dd_price_poultry = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "176/205 908 211/243 909"
+egen dd_price_fish = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+cnumlist "31/36 903"
+egen dd_price_fats = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "266/269 271"
+egen dd_price_sugar = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "246/264 910"
+egen dd_price_condiments = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+cnumlist "270"
+egen dd_price_nuts = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
+
+* Tobacco unit price is zero, but o1_08 var is not; average value of tobacco consumed
+cnumlist "314"
+egen dd_price_tobacco = mean(o1_08) if inlist(o1_01, `r(numlist)'), by(a01)
+
+*********************************
+* Food Consumption Scores pp    *
+* Based on pp 90                *
+*********************************
 
 /* Do same groupings but for FCS groups: cereal tubers staples pulse veg fruit meat milk sugar oil 
 staples = wheat, rice, cereal, starch
@@ -309,40 +376,88 @@ sugar
 oil
 condiments
 */
-egen FCS_price_staples = mean(o1_07) if inlist(o1_01, 1, 2, 3, 4, 11, 12, 277, 280, /* rice
-			*/ 5, 6, 7, 8, 9, 213, 279, 281, 282, 285, 296, 297, 299, /*
-			*/ 301, 303, 306, 311, /* wheat */ 14, 61, 62, 55 /* starch */ /*
-			*/ 5, 6, 8, 13,  15, 16, 901), by(a01)
 
-egen FCS_price_pulse = mean(o1_07) if inlist(o1_01, 21, 22 /* 
-			*/ 23, 24, 26, 31, 78, 112, 291, 298, 302, 902, /*
-			*/ 79, 146, 163, 259, 270, 27, 70), by(a01)
+cnumlist "1/16 901 21/28 902"
+egen FCS_price_staples = mean(o1_07) if inlist(o1_01,`r(numlist)'), by(a01)
 
-egen FCS_price_veg = mean(o1_07) if inlist(o1_01, 25, 42, 43, /*
-*/ 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 57, 58, 59, 60, 64, /*
-*/ 65, 69, 72, 73, 76, 80, 80, 86, 87, 88, 93, 94, 97, 101, 102, /*
-*/ 103, 104, 105, 106, 107, 109, 111, 114, 254, 287, 288, 292, 295, /*
-*/ 904, 905), by(a01)
+cnumlist "21/28 902"
+egen FCS_price_pulse = mean(o1_07) if inlist(o1_01,`r(numlist)'), by(a01)
 
-egen FCS_price_fruit = mean(o1_07) if inlist(o1_01, 56, 56, 63, 71, 74, /*
-*/ 141, 142, 144, 145, 147, 148, 149, 151, 152, 154, 155, 156, 157, /*
-*/ 160, 161, 166, 167, 168, 274, 907), by(a01)
+cnumlist "41/82 904 86/115 906"
+egen FCS_price_veg = mean(o1_07) if inlist(o1_01, `r(numlist)'), by(a01)
 
-egen FCS_price_fish = mean(o1_07) if inlist(o1_01, 131, 176, 177, 178, 181, /*
-*/ 184, 186, 187, 188, 189, 190, 191, 192, 193, 194, 196, 198, 204, 205, /*
-*/ 211, 214, 215, 223, 230, 238, 240, 241, 242, 243, 908, 909 /*fish */ /*
-*/ 121, 122, 126,  127, 128, 129, 164, 203, 283, 290, 322, 906 /* meat */ /*
-*/ 123, 124, 125 /* poultry */, 130, 289 /* eggs */ ), by(a01)
+cnumlist "141/170 907"
+egen FCS_price_fruit = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
 
-egen FCS_price_dairy = mean(o1_07) if inlist(o1_01, 132, 133, 134, 294, 321), by(a01)
+cnumlist "121/129 906 176/205 908 211/243 909"
+egen FCS_price_fish = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
 
-egen FCS_price_sugar = mean(o1_07) if inlist(o1_01, 162 /*
-*/ 212, 253, 271, 276, 293, 304, 307, 266, 267), by(a01)
+cnumlist "132 133 134 135"
+egen FCS_price_dairy = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
 
-egen FCS_price_fats = mean(o1_07) if inlist(o1_01, 34, 35, 36, 903, 135), by(a01)
+cnumlist "266/269 271"
+egen FCS_price_sugar = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
 
-egen FCS_price_condiments = mean(o1_07) if inlist(o1_01, 32, 150, 153, 158, /*
-*/  247, 248, 251, 252, 257, 264, 269, 272, 300, 308, 910), by(a01)
+cnumlist "31/36 903"
+egen FCS_price_fats = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+cnumlist "246/264 910"
+egen FCS_price_condiments = mean(o1_07) if inlist(o1_01, `r(numlist)' ), by(a01)
+
+* Keep prices and household identifier; Collapse and keep max average prices
+ds(o1* sample_type), not
+keep `r(varlist)'
+include "$pathdo/copylabels.do"
+collapse (max) price* FCS_price* *Cons dd_*, by(a01)
+include "$pathdo/attachlabels.do"
+
+* Create second diet diversity variable using survey categories
+egen dietDiv2 = rsum2(cerealCons pulseCons oilCons vegCons meatCons fruitCons fishCons spiceCons sugarCons)
+la var dietDiv2 "Dietary Diversity based on 9 food groups from survey"
+
+* Spice prices seem to be abnormally high; remove outliers and recalculate
+sum price_spice, d
+replace price_spice = (`r(mean)') if price_spice >`r(p95)' & price_spice~=.
+
+* label food prices and generate coef plot of average prices
+est clear
+local flist "cereal pulse oil veg meat fruit fish spice sugar"
+local n: word count `flist'
+forvalues i = 1/`n' {
+	local a: word `i' of `flist'
+	la var `a'Cons "Consumed `a' in last 7 days"
+	la var price_`a' "Unit price of `a'"
+	cap g `a' = 1
+	qui reg price_`a' `a', nocons
+	eststo fp`i'
+	drop `a' _est_fp`i'
+}
+*end
+
+* Plot averages and confidence bands for each price on same graph; Save it.
+coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9 , legend(off)/*
+*/ title(Average food prices, size(small) color(black))
+graph export "$pathgraph\Ave_survey_prices.png", as(png) replace  width(800) height(600)
+
+
+* Label the variables, get their averages and plot them on same graph to compare
+est clear
+local ptype wheat rice starch cereal veg fruit beans eggs dairy meat poultry fish fats sugar condiments nuts
+local n: word count `ptype'
+forvalues i = 1/`n' {
+	local a: word `i' of `ptype'
+	la var dd_price_`a' "Average price for `a'"
+	cap g `a' = 1
+	qui reg dd_price_`a' `a', nocons
+	eststo fp`i'
+	drop `a' _est_fp`i'
+}
+*end
+
+* Plot averages and confidence bands for each price on same graph; Save it.
+coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9 fp10 fp11 fp12 fp13 fp14 fp15 fp16, legend(off)/*
+*/ title(Average food prices, size(small) color(black))
+graph export "$pathgraph\Ave_food_prices.png", as(png) replace  width(800) height(600)
 
 * Create summary statistics of each food for plotting
 est clear 
@@ -362,13 +477,6 @@ coefplot fp1 fp2 fp3 fp4 fp5 fp6 fp7 fp8 fp9, legend(off)/*
 */ title(Average food prices, size(small) color(black))
 graph export "$pathgraph\Ave_FCS_prices.png", as(png) replace  width(800) height(600)
 
-* Keep prices and household identifier; Collapse and keep max average prices
-ds(o1* sample_type), not
-keep `r(varlist)'
-include "$pathdo/copylabels.do"
-collapse (max) price* FCS_price*, by(a01)
-include "$pathdo/attachlabels.do"
-
 merge 1:1 a01 using "$pathout/foodSecurity.dta", gen(fcs_merge)
 drop fcs_merge
 
@@ -378,7 +486,7 @@ drop a02 a10 a11 a12 a13 a14 a15 a16_dd a16_mm a16_yy /*
 */  a17_dd a17_mm a17_yy a18 a19 a20_dd a20_mm a20_yy a21 Flagaddl regnm
 
 * Replace missing values for food prices with the median value at the village/district/division level
-local flist wheat rice starch cereal veg fruit beans eggs dairy meat poultry fish fats sugar condiments nuts
+local flist "cereal pulse oil veg meat fruit fish spice sugar"
 foreach x of local flist {
 	cap egen `x'tmp  = median(price_`x'), by(vcode_n)
 	cap egen `x'tmp2 = median(price_`x'), by(dcode)
@@ -387,6 +495,21 @@ foreach x of local flist {
 	replace price_`x' = `x'tmp  if price_`x' == .
 	replace price_`x' = `x'tmp2 if price_`x' == .
 	replace price_`x' = `x'tmp3 if price_`x' == .	
+	
+	drop `x'tmp*
+}
+*end
+
+* Full dietary diversity index
+local flist wheat rice starch cereal veg fruit beans eggs dairy meat poultry fish fats sugar condiments nuts tobacco
+foreach x of local flist {
+	cap egen `x'tmp  = median(dd_price_`x'), by(vcode_n)
+	cap egen `x'tmp2 = median(dd_price_`x'), by(dcode)
+	cap egen `x'tmp3 = median(dd_price_`x'), by(div)
+	
+	replace dd_price_`x' = `x'tmp  if dd_price_`x' == .
+	replace dd_price_`x' = `x'tmp2 if dd_price_`x' == .
+	replace dd_price_`x' = `x'tmp3 if dd_price_`x' == .	
 	
 	drop `x'tmp*
 }
