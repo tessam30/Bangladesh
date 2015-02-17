@@ -28,7 +28,8 @@ foreach x of local mlist {
 
 * Merge in lat long for testing residuals
 drop div
-merge 1:1 a01 using "U:\Bangladesh\Sensitive_Data\Geovariables.dta", gen(_mergegps)
+merge 1:1 a01 using "$pathSensitive\Geovariables.dta", gen(_mergegps)
+
 
 * Export a cut of food security variable to CSV for mapping
 preserve
