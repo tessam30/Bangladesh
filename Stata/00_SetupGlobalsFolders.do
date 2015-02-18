@@ -51,7 +51,7 @@ foreach dir in `pFolder' {
 
 * Run initially to set up folder structure
 * Choose your folders to set up as the local macro `folders'
-local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python Programs Sensitive_Data
+local folders Rawdata Stata Datain Log Output Dataout Excel PDF Word Graph GIS Export R Python Programs Sensitive_Data FinalProducts
 foreach dir in `folders' {
 	confirmdir "`dir'"
 	if `r(confirmdir)'==170 {
@@ -61,6 +61,8 @@ foreach dir in `folders' {
 	else disp as error "`dir' already exists. Skipped to next folder."
 }
 *end
+
+* Add under the Final products folder 3 subfolders consisting of AI, PDFs PosterJPG PPTJPG
 
 /*---------------------------------
 # Set Globals based on path above #
