@@ -31,8 +31,8 @@ foreach x of local required_ados {
 *end
 
 * Determine path for the study 
-*global projectpath "U:\"
-global projectpath "C:\Users\t\Documents\"
+global projectpath "U:\"
+*global projectpath "C:\Users\t\Box Sync\"
 cd "$projectpath"
 
 * Run a macro to set up study folder (needs to be modified)
@@ -62,16 +62,13 @@ foreach dir in `folders' {
 }
 *end
 
-* Add under the Final products folder 3 subfolders consisting of AI, PDFs PosterJPG PPTJPG
-
 /*---------------------------------
 # Set Globals based on path above #
 -----------------------------------*/
 global date $S_DATE
 local dir `c(pwd)'
 global path "`dir'"
-*global pathdo "`dir'\Stata"
-global pathdo "C:\Users\t\Documents\GitHub\Bangladesh\Stata"
+global pathdo "`dir'\Stata"
 global pathlog  "`dir'\Log"
 global pathin "`dir'\Datain"
 global pathout "`dir'\Dataout"
@@ -86,9 +83,35 @@ global pathPython "`dir'\Python"
 global pathProgram "`dir'\Program"
 global pathPdrive "P:\GeoCenter\GIS\Projects\Bangladesh"
 global pathSensitive "`dir'\Sensitive_Data"
-
+global pathProducts "`dir'\FinalProducts"
 * Project macros are defined as:
 macro list 
+
+* Add in subfolders for GIS and Final Products Folders
+cd "$pathgis"
+local gisfolders FeatureClass Shapefiles csv Layers mxd Rasters scratch
+foreach dir in `gisfolders' {
+	confirmdir "`dir'"
+	if `r(confirmdir)'==170 {
+			mkdir "`dir'"
+			disp in yellow "`dir' successfully created."
+		}
+	else disp as error "`dir' already exists. Skipped to next folder."
+}
+*end
+
+cd "$pathProducts"
+local subfolders AI PDFs PosterJPG PPTJPG 
+foreach dir in `subfolders' {
+	confirmdir "`dir'"
+	if `r(confirmdir)'==170 {
+			mkdir "`dir'"
+			disp in yellow "`dir' successfully created."
+		}
+	else disp as error "`dir' already exists. Skipped to next folder."
+}
+*end
+
 
 /* Check and load custom programs created for project
 1. cnumlist - creates comma separated number lists; useful with inlist command
