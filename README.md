@@ -2,7 +2,7 @@
 Geospatial Livelihoods Analysis  
 ===
 <p align="center">
-  <img src="http://www.feedthefuture.gov/sites/default/files/countries/images/Bangladesh%20country%20map.jpg" width="400px" height="400px" /> 
+  <img src="https://cloud.githubusercontent.com/assets/5873344/6477308/388c323e-c1f0-11e4-965a-e2e6fef24a4d.PNG" width="400px" height="700px" /> 
 </p>
 This repository contains Stata, R, and Python code to reproduce the Bangladesh GLA. To reporoduce the analysis clone the repository or download the tarball of the entire project. All data used in the analysis are from the [Feed the Future Baseline Survey][1].  
 
