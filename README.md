@@ -1,5 +1,5 @@
 
-Geospatial Livelihoods Analysis  
+Livelihoods Analysis  
 ===
 This repository contains Stata, R, and Python code to reproduce the Bangladesh Livelihoods Analysis and Mapping Project. To reporoduce the analysis clone the repository or download the tarball project. All data used in the analysis are from the [Feed the Future Baseline Survey][1].  
 
