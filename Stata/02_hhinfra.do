@@ -71,6 +71,7 @@ la var cookFuel "Fuel used for cooking"
 
 * Binary for electric fuel sources 
 g byte electFuel = q_16 == 1
+la var electFuel "electricity is cooking fuel source"
 
 * Lighting fuel
 g byte lightFuel = inlist(q_18, 1, 2, 3)
@@ -79,7 +80,13 @@ la var lightFuel "HH uses electricity for lighting"
 g byte mobile = q_20 > 0
 la var mobile "HH owns at least on mobile phone"
 
+clonevar totMobiles = q_20
+clonevar totRooms = q_10
+
 * keep relevant variables and save dataset for merging w/ other assets
+ds(q_* flag), not
+keep `r(varlist)'
+
 #delimit ;
 	keep a01 ownHouse houseAge newHome houseSize houseQual 
 		brickTinHome mudHome metalRoof dfloor singleRoom 
@@ -95,11 +102,13 @@ save "$pathout/houseinfra.dta", replace
 **************
 use "$pathin/036_mod_r_male.dta", clear
 
+clonevar latrineType = r01
+clonevar waterAccess = r02
+clonevar waterSource = r03
+
+
 g byte latrineSealed = inlist(r01, 4, 5)
 la var latrineSealed "Water sealed latrine"
-
-g byte waterAccess = r02 == 1
-la var waterAccess "HH has access to water supply"
 
 g byte privateWater = inlist(r03, 1, 2, 3)
 la var privateWater "Water source is private (tube well or piped)"
@@ -107,10 +116,18 @@ la var privateWater "Water source is private (tube well or piped)"
 g byte publicWater = inlist(r03, 4, 5, 6, 7, 8)
 la var publicWater "Water source is public or open (community tubewell)"
 
+g byte treatWater = inlist(r06, 5) !=1
+la var treatWater "Household treats water"
+
+g byte waterArsenicTest = (r07 == 1)
+la var waterArsenicTest "water tested for arscenic)
+
 g byte garbage = inlist(r10, 1, 2, 3 4)
 la var garbage "Garbage pit or collection"
 
-keep latrineSealed waterAccess privateWater publicWater garbage a01
+ds (r0* r10), not
+keep  `r(varlist)'
+
 
 * Merge in household infrastructure and create factor analysis/PCA
  merge 1:1 a01 using "$pathout/houseinfra.dta"
@@ -123,9 +140,11 @@ keep latrineSealed waterAccess privateWater publicWater garbage a01
 use "$pathin/037_mod_s_male.dta", clear
 
 g distHealth = s_04 if inlist(s_01, 1)
-g distRoad = s_04 if inlist(s_01, 3)
-g distTown = s_04 if inlist(s_01, 7)
+g distRoad 	 = s_04 if inlist(s_01, 3)
+g distTown 	 = s_04 if inlist(s_01, 7)
 g distMarket = s_04 if inlist(s_01, 6)
+g distBank	 = s_04 if inlist(s_01, 11)	
+g distAgOffice = s_04 if inlist(s_01, 9)
 
 collapse (max) distHealth distRoad distTown distMarket, by(a01)
 
@@ -153,6 +172,9 @@ drop _merge
 /* NOTES: Create Infrastructure indices 
  Keeping only first factor to simplify;
 */
+
+
+
 
 * Set global vector of variables to include in analysis
 #delimit ;
@@ -191,7 +213,7 @@ loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*
 	
 graph export "$pathgraph\infraLoadings.png", as(png) replace
 scree, title(Scree plot of infra index)
-graph export "$pathgraph\infraScree.png"
+graph export "$pathgraph\infraScree.png", replace
 	
 *Now run factor analysis retaining only principal component factors; Exploratory, not really neede
 qui factor distHealth distMarket distRoad distTown, pcf	

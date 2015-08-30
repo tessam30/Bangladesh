@@ -91,10 +91,10 @@ keep `r(varlist)'
 order a01 hhDurablesValue
 
 * Collapse down to HH level
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 ds (a01 hhDurablesValue), not
 collapse (sum) hhDurablesValue (max) `r(varlist)', by(a01)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Run summary statistics on assets
 tabstat ntrunk-ngenerator, stat(mean sd min max)
@@ -110,10 +110,12 @@ tabstat ntrunk-ngenerator, stat(mean sd min max)
 #delimit cr
 *qui rotate
 qui predict durwealth
+estat kmo
 
 /* Check Cronbach's alpha for Scale reliability coefficent higher than 0.50;
 	Scale derived is reasonable b/c the estimated correlation between it and 
-	underlying factor it is measuring is sqrt(0.69) = .8333 */
+	underlying factor it is measuring is sqrt(0.69) = .8333 
+	Also start checking estat KMO to ensure we are in .7-.9 range */
 #delimit ;
 	alpha trunk bucket stove cookpots bed cabinet tableChairs hukka 
 	fan iron radio cd clock tvbw tvclr sew bike rickshaw van 
@@ -223,7 +225,7 @@ ds(d2*), not
 keep `r(varlist)'
 
 * copy variable labels to reapply
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 
 * Collapse data down to HH level
 ds(a01 munitprice), not
@@ -233,7 +235,7 @@ ds(a01 munitprice), not
 #delimit cr
 
 * Reapply variable lables and save a copy
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Run factor analysis to create ag wealth index
 * May have to modify below depending on ording of variables;
@@ -242,6 +244,7 @@ qui factor kaste-harvester, pcf
 *rotate
 predict agAssetWealth
 alpha kaste-harvester
+estat kmo
 
 * Plot loadings for review
 qui loadingplot, mlabs(small) mlabc(maroon) mc(maroon) /*

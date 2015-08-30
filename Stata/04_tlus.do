@@ -31,6 +31,8 @@ foreach x of local lvstk {
 	bys a01: g `x' = k1_04 if (livestock == `count')
 	bys a01: g `x'2011beg = k1_02a if livestock == `count'
 	bys a01: g `x'2011end = k1_03a if livestock == `count'
+	bys a01: g `x'OwnCareTwo = k1_04 if (livestock == `count') & k1_05a == 2 & k1_06a == 2
+	bys a01: g `x'CareTwo = k1_04 if (livestock == `count') & k1_06a ==2
 	
 	replace `x' = 0 if `x' ==.
 	replace `x'2011beg = 0 if `x'2011beg == .
@@ -38,6 +40,8 @@ foreach x of local lvstk {
 	la var `x' "Total `x' owned by hh now "
 	la var `x'2011beg "Total `x' owned in beg 2011"
 	la var `x'2011end "Total `x' owned in end 2011"
+	la var `x'OwnCareTwo "Number 2 hh memb owns and cares for animal"
+	la var `x'CareTwo "Number 2 hh memb cares for animal"
 	
 	bys a01: g `x'diff = `x'2011end - `x'2011beg
 	la var `x'diff "Change in `x' during 2011"
@@ -85,9 +89,9 @@ ds(k1* livestock), not
 keep `r(varlist)'
 
 * Collapse to household level with usual pre/post labels
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 collapse (max) bullock-otherdiff tvalanim, by(a01) fast
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Merge in ag assets to get horse and mules
 merge 1:1 a01 using "$pathout/hhpc.dta", gen(TLU_merge)
@@ -96,6 +100,10 @@ merge 1:1 a01 using "$pathout/hhpc.dta", gen(TLU_merge)
 Notes: Sheep includes sheep and goats
 Horse includes all draught animals (donkey, horse, bullock)
 chxTLU includes all small animals (chicken, fowl, etc).*/
+
+sum bullock mcow buffalo goat sheep chicken duck othbirds other, d
+bob
+
 g cattleVal = 0.70
 g sheepVal = 0.10
 g horsesVal = 0.80

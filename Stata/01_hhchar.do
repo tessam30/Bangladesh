@@ -37,6 +37,8 @@ g agehead = b1_02 if hoh == 1
 la var agehead "Age of head of household"
 g ageheadsq = agehead^2
 la var ageheadsq "Squared age of the head (for non-linear effects)"
+g ageSpouse = b1_02 if b1_03 == 2
+la var ageSpouse "Age of the spouse of household"
 
 * Relationship status
 g byte marriedHead = b1_04 == 2 & hoh==1
@@ -58,8 +60,8 @@ g byte migrationHoh = b1_05 == 1 & hoh == 1
 la var migrationHoh "Hoh has migrated in last 6 months"
 
 * Create household size variables
-bysort a01: gen hhSize = _N 
-la var hhSize "Household size"
+bysort a01: gen hhsize = _N 
+la var hhsize "Household size"
 
 * Create sex ratio for households
 g byte male = b1_01 == 1
@@ -88,7 +90,7 @@ egen totNumDepRatio = total(numDepRatio), by(a01)
 egen totDenomDepRatio = total(demonDepRatio), by(a01)
 
 * Check that numbers add to hhsize
-assert hhSize == totNumDepRatio+totDenomDepRatio
+assert hhsize == totNumDepRatio+totDenomDepRatio
 g depRatio = (totNumDepRatio/totDenomDepRatio)*100 if totDenomDepRatio!=.
 recode depRatio (. = 0) if totDenomDepRatio==0
 la var depRatio "Dependency Ratio"
@@ -119,6 +121,28 @@ g flaborShare = flabor/hhlabor
 recode flaborShare (. = 0) if hhlabor == 0
 la var flaborShare "share of working age females in hh"
 
+
+* Code below is inefficient; Should use cut command as w/ ETH do files
+* % of hh females aged 20-34 & 35 - 59
+g byte fem20_34tmp = (b1_02>=20 &  b1_02<35) & (female == 1)
+g byte fem35_59tmp = (b1_02>=35 & b1_02<60) & (female == 1)
+egen femCount20_34 = total(fem20_34tmp), by(a01)
+egen femCount35_59 = total(fem35_59tmp), by(a01)
+g femRatio20_34 = femCount20_34/hhsize
+g femRatio35_59 = femCount35_59/hhsize
+
+la var femRatio20_34 "Share of females in hh 20-34"
+la var femRatio35_59 "Share of females in hh 35-59"
+la var femCount20_34 "Number of females in hh 20-34"
+la var femCount35_59 "Number of females in hh 35-59"
+
+* Collapse will take care of aggregation at hh level
+g byte under5t = b1_02 <=5
+egen under5 = total(under5t), by(a01)
+egen under5male = total(under5t) if male == 1, by(a01)
+egen under5female = total(under5t) if female == 1, by(a01)
+drop under5t
+
 * Number of hh members under 15
 g byte under15t = b1_02<15
 egen under15 = total(under15t), by(a01)
@@ -142,9 +166,9 @@ la var under24 "number of hh members under 24"
 la var under24male "number of hh male members under 24"
 
 * HH share of members under 15/24
-g under15Share = under15/hhSize
+g under15Share = under15/hhsize
 la var under15Share "share of hh members under 15"
-g under24Share = under24/hhSize
+g under24Share = under24/hhsize
 la var under24Share "share of hh members under 24"
 
 * Generate adult equivalents in household
@@ -171,11 +195,19 @@ drop under15t under24t
 **********************
 
 * head of household literate
-g byte literateHead = (b1_07 == 4 & hoh == 1)
+g byte literateHead   = (b1_07 == 4 & hoh == 1)
+g byte readOnlyHead   = b1_07 == 3 & hoh == 1
+g byte signOnlyHead   = b1_07 == 2 & hoh == 1
+g byte illitHead 	  = b1_07 == 1 & hoh
+
 la var literateHead "HoH is literate"
+la var readOnlyHead "Hoh can read only"
+la var signOnlyHead "Hoh can sign only"
+la var illitHead 	"Hoh cannot read and write"
 
 * wife of hoh is literate
 g byte spouseLit = (b1_04 == 2 & b1_03 == 2 & b1_07 ==4) 
+g byte spouseIllit = (b1_04 == 2 & b1_03 == 2 & b1_07 == 1) 
 la var spouseLit "Spouse is literate"
 
 /* Education for individuals: 
@@ -209,21 +241,30 @@ replace educ = 5 if inlist(b1_08, 14, 15, 16, 22, 71, 72, 73, 74)
 replace educ = 6 if inlist(b1_08, 76)
 
 * Create variable reflect the max education in the household for those 25+
-egen educAdult = max(educ) if b1_02>24, by(a01)
-egen educAdult_r = max(educAdult), by(a01) //ac
-replace educAdult = educAdult_r  //ac
-drop educAdult_r  //ac
+egen educAdult_25 = max(educ) if b1_02 > 24, by(a01)
+egen educAdultF_25 = max(educ) if b1_02 > 24 & female == 1, by(a01)
+egen educAdultM_25 = max(educ) if b1_02 > 24 & female == 0, by(a01)
+
+egen educAdult_18 = max(educ) if b1_02 > 17, by(a01)
+egen educAdultF_18 = max(educ) if b1_02 > 17 & female == 1, by(a01)
+egen educAdultM_18 = max(educ) if b1_02 > 17 & female == 0, by(a01)
+* Create similar variable but for males and for females
+g educHead = educ if hoh == 1
+g educSpouse = educ if b1_03 == 2
 
 g educHoh = educ if hoh==1
-la var educAdult "Highest adult education in household"
+la var educAdult_18 "Highest adult (18+) education in household"
+la var educAdultM_18 "Highest adult (18+) education in household"
+la var educAdultF_18 "Highest adult (18+) education in household"
+
+la var educAdult_25 "Highest adult (25+) education in household"
+la var educAdult_25 "Highest adult (25+) education in household"
+la var educAdult_25 "Highest adult (25+) education in household"
+
 la var educHoh "Education of Hoh"
 
-* Create dummys distinguishing between women's and men's education in same hh
-g byte primFem = (b1_01 == 2) & (b1_02>15) & (educ == 2)
-g byte secondFem = (b1_01 == 2) & (b1_02>15) & (educ == 4)
-
-g byte primMale = (b1_01 == 1) & (b1_02>15) & (educ == 2)
-g byte secondMale = (b1_01 == 1) & (b1_02>15) & (educ == 4)
+* Look at child brides; Anyone who identifies as spouse and is under 18
+* Few child brides; skipping topic
 
 /* Main occupation of household head
 1. Ag day laborer
@@ -236,50 +277,50 @@ g byte secondMale = (b1_01 == 1) & (b1_02>15) & (educ == 4)
 8. Farming
 9. Non-earning occupation
 */
-g occupation = .
-la var occupation "Main occupation of hoh"
+g occupHoh = .
+la var occupHoh "Main occupation of hoh"
 * Ag day
-replace occupation = 1 if inlist(b1_10, 1) & hoh == 1
+replace occupHoh = 1 if inlist(b1_10, 1) & hoh == 1
 * Non-ag
-replace occupation = 2 if inlist(b1_10, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ) & hoh == 1
+replace occupHoh = 2 if inlist(b1_10, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ) & hoh == 1
 * Salaried
-replace occupation = 3 if inlist(b1_10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21) & hoh == 1
+replace occupHoh = 3 if inlist(b1_10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21) & hoh == 1
 * Self-employed
-replace occupation = 4 if inlist(b1_10, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,  /*
+replace occupHoh = 4 if inlist(b1_10, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,  /*
 */ 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 72) & hoh == 1
 * Rickshaw
-replace occupation = 5 if inlist(b1_10, 22) & hoh == 1
+replace occupHoh = 5 if inlist(b1_10, 22) & hoh == 1
 * Trade
-replace occupation = 6 if inlist(b1_10, 50, 51, 52, 53, 54) & hoh == 1
+replace occupHoh = 6 if inlist(b1_10, 50, 51, 52, 53, 54) & hoh == 1
 * Production
-replace occupation = 7 if inlist(b1_10, 55, 56, 57) & hoh == 1
+replace occupHoh = 7 if inlist(b1_10, 55, 56, 57) & hoh == 1
 * Farming
-replace occupation = 8 if inlist(b1_10, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71) & hoh == 1
+replace occupHoh = 8 if inlist(b1_10, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71) & hoh == 1
 * Non-earning
-replace occupation = 9 if inlist(b1_10, 81, 82, 83, 84, 85, 86) & hoh == 1
+replace occupHoh = 9 if inlist(b1_10, 81, 82, 83, 84, 85, 86) & hoh == 1
+
+g byte occupSpouseChx = b1_10 == 69 & b1_03 == 2
+g byte occupSpouseLvstk = inlist(b1_10, 70, 71) & b1_03 == 2
+g byte occupSpouseHwife = b1_10 == 82 & b1_03 == 2
+la var occupSpouseChx "Spouse raises chicken"
+la var occupSpouseLvstk "Spouse raises livestock or milk producer"
+la var occupSpouseHwife "Spouse is housewife"
 
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
-include "$pathdo/copylabels.do"
 
-#delimit ;
-	collapse (max) hoh femhead agehead ageheadsq marriedHead widowHead 
-		singleHead hhSize msize fsize sexRatio depRatio 
-		hhlabor mlabor flabor mlaborShare flaborShare under15 
-		under15male under24 under24male under15Share under24Share 
-		literateHead spouseLit educ educAdult educHoh occupation
-		widowFemhead adultEquiv primFem secondFem primMale secondMale
-		sample_type, by(a01) fast;
-#delimit cr
-order a01
+ds(b1* mid), not
+keep `r(varlist)'
 
-* Reapply variable lables & value labels
-include "$pathdo/attachlabels.do"
+ds (a01), not
+include "$pathdo2/copylabels.do"
+collapse (max) `r(varlist)', by(a01)
+include "$pathdo2/attachlabels.do"
 
 * Create value labels for edu
 la def ed 0 "No Education" 1 "Pre-primary" 2 "Primary" /*
 	*/ 3 "Junior Secondary" 4 "Secondary" 5 "Tertiary" 6 "Other"
-foreach x of varlist educ educAdult educHoh {
+foreach x of varlist educ* {
 	label values `x' ed
 	}
 *end
@@ -288,19 +329,19 @@ la def occ 1 "Ag-day laborer" 2 "Non-ag day laborer" /*
 	*/ 3 "Salaried" 4 "Self-employed" 5 "Rickshaw/van puller" /*
 	*/ 6 "Business or trade" 7 "Production business" 8 "Farming" /*
 	*/ 9 "Non-earning occupation"
-la values occupation occ
+la values occupHoh occ
 * 
 la def sample 1 "ftf original" 2 "ftf additional" /*
 	*/ 3 "national representative" 
 la values sample_type sample
 
 * Add notes to variables if needed
-notes educAdult: missing values indicate that no member of household was over 25
+notes educAdult_25: missing values indicate that no member of household was over 25
 compress
+aorder
 
 * Save
 save "$pathout/hhchar.dta", replace
-
 * Keep a master file of only household id's for missing var checks
 keep a01
 save "$pathout\hhid.dta", replace

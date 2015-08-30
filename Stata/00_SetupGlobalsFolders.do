@@ -31,7 +31,8 @@ foreach x of local required_ados {
 *end
 
 * Determine path for the study 
-global projectpath "U:/"
+*global projectpath "U:/"
+global projectpath "C:/Users/t/Documents/"
 *global projectpath "C:/Users/t/Box Sync/"
 cd "$projectpath"
 
@@ -68,7 +69,8 @@ foreach dir in `folders' {
 global date $S_DATE
 local dir `c(pwd)'
 global path "`dir'"
-global pathdo "`dir'/Stata"
+global pathdo2 "C:/Users/t/Documents/GitHub/Bangladesh/Stata"
+*global pathdo "`dir'/Stata"
 global pathlog  "`dir'/Log"
 global pathin "`dir'/Datain"
 global pathout "`dir'/Dataout"
@@ -84,6 +86,7 @@ global pathProgram "`dir'/Program"
 global pathPdrive "P:/GeoCenter/GIS/Projects/Bangladesh"
 global pathSensitive "`dir'/Sensitive_Data"
 global pathProducts "`dir'/FinalProducts"
+global pathgit "C:/Users/t/Documents/GitHub/Bangladesh"
 * Project macros are defined as:
 macro list 
 
@@ -118,15 +121,16 @@ foreach dir in `subfolders' {
 */
 
 * Ensure that you have comma number list program access
+cd "$path"
 qui local required_file cnumlist
 qui foreach x of local required_file { 
-	 capture findfile `x'.do, path($pathdo)
+	 capture findfile `x'.do, path($pathdo2)
 		if _rc==601 {
 			noi disp in red "Please verify `x'.do function has been included in the do files"
 			* Create an exit conditions based on whether or not file is found.
 			if _rc==601 exit = 1
 		}
-		else do "$pathdo/cnumlist.do"
+		else do "$pathdo2/cnumlist.do"
 		noi disp in yellow "Comma separated numlist enabled"
 	}
 *end
