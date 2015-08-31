@@ -102,7 +102,6 @@ Horse includes all draught animals (donkey, horse, bullock)
 chxTLU includes all small animals (chicken, fowl, etc).*/
 
 sum bullock mcow buffalo goat sheep chicken duck othbirds other, d
-bob
 
 g cattleVal = 0.70
 g sheepVal = 0.10
@@ -123,6 +122,8 @@ g TLUchx = (chicken + duck + othbirds + other) * chxVal
 egen TLUtotal = rsum(TLUcattle TLUsheep TLUhorses TLUmules TLUasses TLUchx)
 la var TLUtotal "Total tropical livestock units"
 
+sum TLUtotal, d
+histogram TLUtotal
 * Clean up extra variables
 drop cattleVal horsesVal mulesVal assesVal sheepVal chxVal TLUcattle TLUsheep TLUhorses TLUmules TLUasses TLUchx
 

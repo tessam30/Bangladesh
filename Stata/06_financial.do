@@ -21,7 +21,9 @@ use "$pathin/008_mod_e_male.dta", clear
 
 * Generate dummy for existence of savings account
 g byte savings = e02 == 1
+g byte savingsMemb2 = (e02 == 1 & mid == 2)
 la var savings "HH has savings account"
+la var savingsMemb2 "HH member 2 has savings account"
 
 g byte savingsYr = e01 == 1
 la var savingsYr "HH had savings account in last year"
@@ -39,9 +41,9 @@ g byte othSave = inlist(e04, 1, 3, 5, 6, 7, 9, 10, 11)
 la var othSave "HH saves at other places"
 
 * Collapse down to hh
-include "$pathdo/copylabels.do"
-collapse savings savingsYr savingsTot (max) ngoSave bankSave insurSave othSave, by(a01)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/copylabels.do"
+collapse savings savingsMemb2 savingsYr savingsTot (max) ngoSave bankSave insurSave othSave, by(a01)
+include "$pathdo2/attachlabels.do"
 
 * Save as savings
 save "$pathout/savings.dta", replace
@@ -52,6 +54,8 @@ use "$pathin/009_mod_f_male.dta", clear
 * Make variables that track what type of loan it is, how much, and where from, interest and total debt.
 g byte loans = f02 == 1
 la var loans "Household currenlty has a loan"
+g byte loansMemb2 = (f02 == 1& mid == 2)
+la var loansMemb2 "Household member 2 currently has a loan"
 
 * Loan use
 g busLoan = inlist(f06_a, 1)
@@ -81,10 +85,10 @@ ds(f0* mid f10 flag ), not
 keep `r(varlist)'
 
 * Collapse down to hh
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 ds(a01 sample_type), not
 collapse (max) `r(varlist)', by(a01)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 merge 1:1 a01  using "$pathout/savings.dta", gen(fin_merge)
 compress

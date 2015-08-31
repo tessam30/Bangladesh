@@ -48,6 +48,12 @@ la var shkTot "Total shocks reported of all types"
 egen shkLossTot = total(t1_07) if inlist(t1_10, 1, 2), by(a01)
 la var shkLossTot "Total value of loss due to shocks"
 
+
+
+
+
+
+
 * By household, calculate the share of loss from each shock type
 * Use this information later to calculate which shock is the most damaging
 * in financial terms
