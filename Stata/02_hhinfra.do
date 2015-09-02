@@ -87,13 +87,6 @@ clonevar totRooms = q_10
 ds(q_* flag), not
 keep `r(varlist)'
 
-#delimit ;
-	keep a01 ownHouse houseAge newHome houseSize houseQual 
-		brickTinHome mudHome metalRoof dfloor singleRoom 
-		electricity elecQual cookFuel lightFuel mobile
-		sample_type;
-#delimit cr
-
 * Save house infrastructure data
 save "$pathout/houseinfra.dta", replace
 
@@ -120,7 +113,7 @@ g byte treatWater = inlist(r06, 5) !=1
 la var treatWater "Household treats water"
 
 g byte waterArsenicTest = (r07 == 1)
-la var waterArsenicTest "water tested for arscenic)
+la var waterArsenicTest "water tested for arscenic"
 
 g byte garbage = inlist(r10, 1, 2, 3 4)
 la var garbage "Garbage pit or collection"

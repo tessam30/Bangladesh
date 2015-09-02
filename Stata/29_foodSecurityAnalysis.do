@@ -28,7 +28,7 @@ foreach x of local mlist {
 
 * Merge in lat long for testing residuals
 drop div
-merge 1:1 a01 using "U:\Bangladesh\Sensitive_Data\Geovariables.dta", gen(_mergegps)
+merge 1:1 a01 using "$pathSensitive/Geovariables.dta", gen(_mergegps)
 
 * Export a cut of food security variable to CSV for mapping
 preserve
@@ -41,6 +41,55 @@ restore
 encode div_name, gen(divName)
 encode District_Name, gen(distName)
 
+* Create a wealth index in manner similar to that done for Ethiopia LSMS
+local assets kaste nirani ladder rake ploughYoke reaper sprayer wheelbarrow tractor tiller trolley thresher fodderMachine swingBasket Don handWell llp stubeWell elecPump dieselPump
+foreach x of local assets {
+		g byte `x'Own = `x' > 1
+		la var `x'Own "hh owns at least one `x'"
+}
+
+#delimit ; 
+local wealthVars waterAccess latrineSealed privateWater ownHouse houseAge houseQual
+	brickTinHome mudHome metalRoof dfloor electricity mobile kasteOwn niraniOwn 
+	trunk bucket bed cabinet
+	tableChairs fan iron radio cd clock tvclr gold bike 
+	moto saw hammer fishnet spade axe shabol;
+ #delimit cr 
+
+factor `wealthVars', pcf means
+predict wealthIndex
+estat kmo
+scree
+histogram wealthIndex
+
+xtile wealthDecile = wealthIndex, nq(10)
+g byte ftfzone = inlist(Sample_type, 1, 2)
+la def ftfzone 0 "non-FTFzone" 1 "ftfzone"
+la val ftfzone ftfzone
+
+* Look at how shocks and food security outcomes vary across wealth
+
+* How do health shocks vary with wealth and ftf zones?
+twoway (lpoly healthshk wealthIndex if ftfzone == 0, clcolor(eltblue) clwidth(medium))/*
+*/ (lpoly healthshk wealthIndex if ftfzone == 1, clcolor(orange) clwidth(medium))/*
+*/ (scatter healthshk wealthIndex if ftfzone == 0, mcolor(eltblue) msize(small)  mlcolor(eltblue) msymbol(smcircle) jitter(7))/*
+*/ (scatter healthshk wealthIndex if ftfzone == 1, mcolor(orange) msize(small)  mlcolor(erose) msymbol(smcircle) jitter(7))/*
+*/, scheme(burd5) /*
+*/ xlabel(-2.5 "very poor" 0 "poor" 2.5 "moderately wealthy", labsize(small))/*
+*/ ytitle(Percent of households with shock, size(small)) ylabel(0 "0%" 0.2 "20%" 0.4 "40%" 0.6 "60%" 0.8 "80%" 1 "100%", labsize(small))/*
+*/yline(0.5, lwidth(thin) lpattern(vshortdash) lcolor(gs13)) legend(off) /*
+*/title("Health Shocks (last 5 years) are more common in Feed the Future Households", size(small))
+
+twoway (lpoly healthshkR wealthIndex if ftfzone == 0, clcolor(eltblue) clwidth(medium))/*
+*/ (lpoly healthshkR wealthIndex if ftfzone == 1, clcolor(orange) clwidth(medium))/*
+*/ (scatter healthshkR wealthIndex if ftfzone == 0, mcolor(eltblue) msize(small)  mlcolor(eltblue) msymbol(smcircle) jitter(7))/*
+*/ (scatter healthshkR wealthIndex if ftfzone == 1, mcolor(orange) msize(small)  mlcolor(erose) msymbol(smcircle) jitter(7))/*
+*/, scheme(burd5) /*
+*/ xlabel(-2.5 "very poor" 0 "poor" 2.5 "moderately wealthy", labsize(small))/*
+*/ ytitle(Percent of households with shock, size(small)) ylabel(0 "0%" 0.2 "20%" 0.4 "40%" 0.6 "60%" 0.8 "80%" 1 "100%", labsize(small))/*
+*/yline(0.5, lwidth(thin) lpattern(vshortdash) lcolor(gs13)) legend(off) /*
+*/title("Health Shocks (last 3 years) are more common in Feed the Future Households", size(small))
+
 * Look at the distribution of FCS and diet diversity by district
 *twoway (histogram dietDiversity, discrete), by(div_name District_Name)
 *twoway (histogram dietDivFCS, discrete), by(div_name District_Name)
@@ -49,12 +98,52 @@ encode District_Name, gen(distName)
 * Summarize the data
 tabstat dietDiversity dietDiv2 dietDivFCS FCS, by(divName) stats(mean sd p25 p50 p75 n)
 
+* Create education category variables
+
+clonevar educAdultM_cat = educAdultM_18
+recode educAdultM_cat (1 = 0) (2 = 1) (3 4 = 2)(5 6 = 3)
+clonevar educAdultF_cat = educAdultF_18
+recode educAdultF_cat (1 = 0) (2 = 1) (3 4 = 2)(5 6 = 3)
+la def educLab 0 "No education" 1 "Primary" 2 "Secondary" 3 "Tertiary"
+la val educAdultM_cat educLab
+la val educAdultF_cat educLab
+
+
 * Define possible exogenous variables
-global ddexog1 "femhead agehead marriedHead sexRatio adultEquiv landless primFem primMale secondFem secondMale"
-global ddexog2 "$ddexog1 infraindex cultland TLUtotal distMarket" 
-global ddexog3 "$ddexog2 agAssetWealth"
+global exog1 "femhead agehead marriedHead sexRatio adultEquiv i.literateHead i.educAdultM_cat i.educAdultF_cat"
+global exog2 "cultland TLUtotal distMarket landless i.migration" 
+global exog3 "wealthIndex"
+global geo "i.divName i.ftfzone"
 global FCSprice "FCS_price_staples FCS_price_pulse FCS_price_veg FCS_price_fruit FCS_price_fish FCS_price_dairy FCS_price_sugar FCS_price_fats"
-global geo "ib(39).distName ib(3).Sample_type"
+
+
+
+
+******************
+* Medical shocks *
+******************
+reg healthshk $exog1 $exog2 $exog3 $geo, cluster(divName)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***************************
+* Food Consumption Scores *
+***************************
 
 * Set dietary diversity price macro to obtain all food groups
 #delimit ;
@@ -62,10 +151,6 @@ global DDprice "dd_price_wheat dd_price_rice dd_price_starch dd_price_cereal dd_
 		dd_price_fruit dd_price_beans dd_price_eggs dd_price_dairy dd_price_meat dd_price_poultry 
 		dd_price_fish dd_price_fats dd_price_sugar dd_price_condiments dd_price_nuts dd_price_tobacco";
 #delimit cr
-
-***************************
-* Food Consumption Scores *
-***************************
 
 * Model food consumption score as an OLS, using robust standard errors
 est clear

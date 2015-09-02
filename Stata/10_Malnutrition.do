@@ -40,7 +40,36 @@ format bday %d
 gen intday = mdy(a16_mm, a16_dd, a16_yy)
 form intday %d
 
+* Create ageMonths variable, round it off
 g ageMonths = (intday - bday)/(365/12)
+replace ageMonths = round(ageMonths, 1)
+
+* How many children in household? Including those from other mothers
+bys a01 (ageMonths): gen childCount = _n
+bys a01 (ageMonths): gen totChild = _N
+sum childCount, d
+la var childCount "Order of the child"
+
+* Create a variable marking first born or multiple children
+local birthOrd "first second third fourth"
+local n: word count `birthOrd'
+forvalues i = 1/`n' {
+	local a: word `i' of `birthOrd'
+	g byte `a'Born = childCount == `i' & totChild >1
+	la var `a'Born "Birth order of child (`a')"
+}
+g byte notFirstBorn = childCount>1 & totChild >1
+
+
+* Was child born 24 months after previous one? Use w2_01 to ensure that birth is from same mother
+sort a01 ageMonths
+bys a01 (ageMonths): g birthGap = ageMonths[_n-1] - ageMonths if totChild>1 & w2_01[_n-1] ==w2_01
+la var birthGap "Gap in months between siblings"
+
+* Some of the values are clearly incorrect or not explanable by data (-2 month difference between births?)
+* Tagginb observations where value is -24 or greater
+g byte birthGap24Mos = (birthGap <= -24)
+recode w2_11 (2 = 0 "no") (1 = 1 "yes"), gen(breastFed) label(bfed)
 
 * Calculate z-scores using zscore06 package
 zscore06, a(ageMonths) s(b1_01) h(w2_08) w(w2_07) measure(w2_09)
@@ -97,13 +126,35 @@ foreach x of varlist stunted underwgt wasted BMI {
 
 clonevar height = w2_08
 clonevar weight = w2_07
-clonevar gender = b1_01
+recode b1_01 (2 = 1 "female") (1 = 0 "male"), generate(gender) label(gend) 
 
 * Create summary statistics for use in R/
 foreach x of varlist stunted underwgt wasted {
 	ttest `x', by(gender)
 }
 *end
+
+* Look at distribution of stunting by divisions
+twoway(lowess stunted ageMonths if notFirstBorn == 0)(lowess stunted ageMonths if notFirstBorn == 1), by(div_name)
+twoway (lowess stunted ageMonths, mean adjust lcolor(cranberry) lwidth(medthick) connect(direct) cmissing(y))/*
+*/ (scatter stunted ageMonths, mcolor(gs14) msize(small)  mlcolor(gs12) msymbol(circle) jitter(5)), scheme(burd5)/*
+*/ xlabel(0(12)60) ytitle(Percent stunted) ylabel(0 "0%" 0.2 "20%" 0.4 "40%" 0.6 "60%" 0.8 "80%" 1 "100%")/*
+*/yline(0.5, lwidth(thin) lpattern(vshortdash) lcolor(gs13)) legend(off) by(div_name, total rows(2) iscale(*0.70))
+
+* Plot stunting rates across divisions across ages
+twoway (lpolyci stunted ageMonths, clcolor(cranberry) clwidth(medium)  fintensity(25) fcolor(gs15) blcolor(gs16) blwidth(none))/*
+*/ (scatter stunted ageMonths, mcolor(gs14) msize(small)  mlcolor(gs12) msymbol(circle) jitter(5)), scheme(burd5)/*
+*/ xlabel(0(12)60) ytitle(Percent stunted) ylabel(0 "0%" 0.2 "20%" 0.4 "40%" 0.6 "60%" 0.8 "80%" 1 "100%")/*
+*/yline(0.5, lwidth(thin) lpattern(vshortdash) lcolor(gs13)) legend(off) by(div_name, total rows(2) iscale(*0.80))
+
+* Create two way plot of stunting and ages, by gender across divisions
+twoway (lpoly stunted ageMonths if gender == 0, clcolor(eltblue) clwidth(medium))/*
+*/ (lpoly stunted ageMonths if gender == 1, clcolor(erose) clwidth(medium))/*
+*/ (scatter stunted ageMonths if gender == 0, mcolor(eltblue) msize(small)  mlcolor(eltblue) msymbol(smcircle) jitter(5))/*
+*/ (scatter stunted ageMonths if gender == 1, mcolor(erose) msize(small)  mlcolor(erose) msymbol(smcircle) jitter(5))/*
+*/, scheme(burd5)/*
+*/ xlabel(0(12)60) ytitle(Percent stunted) ylabel(0 "0%" 0.2 "20%" 0.4 "40%" 0.6 "60%" 0.8 "80%" 1 "100%")/*
+*/yline(0.5, lwidth(thin) lpattern(vshortdash) lcolor(gs13)) legend(off) by(div_name, total rows(2) iscale(*0.80))
 
 * Create an extract for making graphics in R
 preserve
@@ -112,11 +163,11 @@ export delimited using "$pathexport/malnutrition.csv", replace
 restore
 
 compress
-save "$pathout/ChildHealth_indiv.dta", replace
+save "$pathout/ChildHealth_ind.dta", replace
 
 * Collapse data down to household level
 include "$pathdo/copylabels.do"
-collapse (max) stunted underwgt wasted BMIed (mean) stunting height weight gender /*
+collapse (mean) stunted underwgt wasted BMIed (mean) stunting height weight gender /*
 */ underweight wasting, by(a01 div_name District_Name Upazila_Name Union_Name)
 include "$pathdo/attachlabels.do"
 

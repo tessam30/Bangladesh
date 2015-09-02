@@ -23,7 +23,7 @@ g byte illHoh = (w4_01 ==1 & mid == 1)
 la var illHoh "Hoh was ill in last 4 weeks"
 bys a01: egen illCount = total(ill)
 la var ill "At least one member of hh was ill"
-la var illCount "Total casss in hh over last 4 weeks"
+la var illCount "Total cases in hh over last 4 weeks"
 
 * Diarrhea reporting
 g byte diarrhea = w4_07 == 1
@@ -56,14 +56,14 @@ la var weightLoss "hh member reported weight loss"
 la var fever "hh member reported persistent fever"
 
 * Collapse down to hh level being careful to take max/aves where needed
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 
 #delimit ;
 collapse (max)ill illHoh illCount diarrhea diarrheaCount mid
 		  weeksAbsentHead feverWeightLoss weightLoss fever
 		  weeksAbsent, by(a01);
 # delimit cr
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Calculate percent of houshole that was ill
 g illShare = ill/mid
@@ -81,9 +81,19 @@ save "$pathout/health.dta", replace
 use "$pathin/051_mod_x3_female.dta", clear
 
 * Food security related measures
-g byte foodLack = x3_01 == 1
-la var foodLack "lack of resources to get food in last 4 weeks"
+clonevar foodLack = x3_01 
+clonevar foodLackFreq = x3_02
+clonevar sleepHungry = x3_03 
+clonevar sleepHungryFreq = x3_04
+clonevar noFood = x3_05 
+clonevar noFoodFreq = x3_06
 
+foreach x of varlist foodLack sleepHungry noFood {
+		recode `x' (2 = 0)
+}
+
+egen foodInsecurity = rsum2(foodLack sleepHungry noFood)
+la var foodInsecurity "Sum of three food security binary variables"
 
 
 *########## Full Dietary Diversity *17 food groups) ##########
@@ -110,7 +120,11 @@ local i = 1
 foreach x of local foodlist {
     g byte `x' = x3_07_`i' !=0
     la var `x' "hh consumed `x' in last 7 days"
+    g byte `x'OwnProd = (x3_08_`i' == 1) 
+    la var `x'OwnProd "hh is net producer of `x'"
+    tab `x'OwnProd, mi
     local i = `i' + 1 
+    *display in yellow "`x'"
   }
 *end
 
@@ -125,7 +139,7 @@ recode dietDiversity (17 = 15)
 
 /* Calculate Food Consumption Score based on WFP methodology
 * https://github.com/tessam30/Bangladesh/wiki/Food-Security-Notes
-* Weighted range is 0 to 126 ( . 
+* Weighted range is 0 to 112 ( . 
 
 "In line with WFP’s methodology, the thresholds had to be adjusted considering the oil 
 consumption of char dwellers. In Bangladesh, there is a known high consumption of 
@@ -209,9 +223,14 @@ foreach x of varlist staplesFCS pulseFCS vegFCS fruitFCS meatFCS milkFCS sugarFC
 }
 *end
 
+twoway(lowess staplesFCS_pct FCS)(lowess pulseFCS_pct FCS)(lowess vegFCS_pct FCS)(lowess fruitFCS_pct FCS)/*
+*/(lowess meatFCS_pct FCS)(lowess milkFCS_pct FCS)(lowess sugarFCS_pct FCS)(lowess oilFCS_pct FCS)
+
+
 * Calculate cumlative frequencies for each FCS score
 foreach x of varlist staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days {
 	bysort FCS: gen cf_`x' = sum(`x')
+	la var cf_`x' "Cumulative frequency of food consumption by FCS"
 	}
 *end
 
@@ -228,14 +247,14 @@ preserve
 keep staples_days pulse_days veg_days fruit_days meat_days milk_days sugar_days oil_days FCS a01 div_name District_Name Upazila_Name
 order FCS staples_days meat_days veg_days oil_days sugar_days fruit_days pulse_days milk_days a01 div_name District_Name Upazila_Name
 rename *_days* *
-*qui export delimited using "$pathexport\food.consumption.score.csv", replace 
+qui export delimited using "$pathexport\food.consumption.score.csv", replace 
 restore
 
 * Create an export for making diet diversity plots in R
 preserve
 keep dietDiversity a01 div_name District_Name Upazila_Name
 order dietDiversity a01 div_name District_Name Upazila_Name
-*qui export delimited using "$pathexport\diet.diversity.csv", replace 
+qui export delimited using "$pathexport\diet.diversity.csv", replace 
 restore
 
 * Keep select variables for now, can go back and pull in shares if needed.

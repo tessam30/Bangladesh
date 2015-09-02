@@ -8,9 +8,10 @@ libs <- c ("reshape", "ggplot2", "dplyr", "RColorBrewer", "grid")
 lapply(libs, require, character.only=T)
 
 # Set working directory for home or away
-wd <- c("U:/Bangladesh/Export/")
+#wd <- c("U:/Bangladesh/Export/")
 #wd <- c("C:/Users/t/Box Sync/Bangladesh/Export")
-setwd(wd)
+wdlt <- c("C:/Users/Tim/Documents/Bangladesh/Export")
+setwd(wdlt)
 
 # Load data and rename veg to vegetables
 d <- read.csv("food.consumption.score.csv", header = T)
@@ -21,7 +22,8 @@ names(d)[names(d) == 'veg'] <- 'vegetables'
 d2 <- d[,c(1, 2, 5, 4, 6, 3, 7, 8, 9, 10, 11, 12, 13)]
 
 # Change working directory to graphics folder (Graphs)
-setwd("U:/Bangladesh/Graph/")
+graphDrive <- c("C:/Users/Tim/Documents/Bangladesh/Graph")
+setwd(graphDrive)
 
 # Lab RGB colors
 redL     <- c("#B71234")
@@ -184,11 +186,12 @@ remove(list = ls())
 
 # Load dietary diversity data for another dimension of food security baseline
 setwd(wd)
-library(plyr)
+library(dplyr)
 
 # Set working directory again
-wd <- c("C:/Users/t/Box Sync/Bangladesh/Export")
-setwd(wd)
+#wd <- c("C:/Users/t/Box Sync/Bangladesh/Export")
+wdlt <- c("C:/Users/Tim/Documents/Bangladesh/Export")
+setwd(wdlt)
 
 # Load data and rename veg to vegetables
 dd <- read.csv("diet.diversity.csv", header = T)
@@ -224,5 +227,5 @@ pp <- c + geom_density(aes(y = ..count..)) + labs(x ="Number of different foods 
                                                                                # Ignore NA values for mean
                                                                                color=dgrayL, linetype="dashed", size=0.5)
 pp
-setwd("C:/Users/t/Box Sync/Bangladesh/Graph/")
+setwd("graphDrive")
 ggsave(pp, filename = paste("Diet.Diversity", ".png"), width=18, height=10, dpi = dpi.out)

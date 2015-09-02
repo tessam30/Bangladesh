@@ -49,12 +49,12 @@ foreach x of varlist snetEduc snetAge snetAllow snetAid {
 *end
 
 * Collapse and copy labels
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 #delimit ;
 collapse (max) snetValue snetEduc snetAge snetAllow snetAid snetEducValue 
 		snetAgeValue snetAllowValue snetAidValue, by(a01);
 # delimit cr
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Save safety nets and move to migration remmitances
 save "$pathout/safetynets.dta", replace
@@ -83,9 +83,9 @@ la var migDomest "Migration within Bangladesh"
 */
 
 * Collapse down
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 collapse (max) migrationNW migAbroad migDomestic migType, by(a01)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Save migration files
 save "$pathout/migration.dta", replace
@@ -107,9 +107,9 @@ egen remitInChild = total(v2_06) if v2_02 == 3, by(a01)
 la var remitInChild "Total remittances received from children"
 
 * Collapse down
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 collapse (max) remitIn totremitIn hohremitIn, by(a01)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 save "$pathout/remitIn.dta", replace
 
@@ -139,9 +139,9 @@ la var totremitChild "Total remittances sent to children"
 * 77% of all remittances out are sent to children
 
 * Collapse down
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 collapse (max) remitOut totremitOut totremitChild, by(a01)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Stitch all remittances data together and delete extra files
 merge 1:1 a01 using "$pathout/safetynets.dta", gen(snets_merge)
