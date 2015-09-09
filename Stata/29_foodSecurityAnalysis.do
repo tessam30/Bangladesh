@@ -108,6 +108,9 @@ la def educLab 0 "No education" 1 "Primary" 2 "Secondary" 3 "Tertiary"
 la val educAdultM_cat educLab
 la val educAdultF_cat educLab
 
+* Export a cut of data for Laura to use in data visualizations	
+sa "$pathexport/BNG_201509_all.dta", replace
+
 
 * Define possible exogenous variables
 global exog1 "femhead agehead marriedHead sexRatio adultEquiv i.literateHead i.educAdultM_cat i.educAdultF_cat"
