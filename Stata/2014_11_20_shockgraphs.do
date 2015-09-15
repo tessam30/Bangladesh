@@ -19,7 +19,7 @@ local shocks "healthshk agshk finshk assetshk priceshk floodshk  othershk"
 collapse (mean) `shocks' (sum) thlth=healthshk tagshk = agshk tfin = finshk tass = assetshk tpr = priceshk tfld = floodshk toth = othershk, by(div_name)
 g id=_n
 
-export delimited using "U:\Bangladesh\Export\shocks.csv", replace
+export delimited using "$pathexport\shocks.csv", replace
 
 *estpost tabstat `shocks', by(div_name) stat(mean sd) col(statistics) listwise
 

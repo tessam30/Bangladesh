@@ -232,10 +232,10 @@ qui ds (t2*), not
 keep `r(varlist)'
 
 * Collapse down to hh
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 ds(a01), not
 collapse (max) `r(varlist)', by(a01)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 * Merge with negative shock data
 merge 1:1 a01 using "$pathout/negshocks.dta", gen(shock_merge)
@@ -245,6 +245,11 @@ merge 1:1 a01 using "$pathout/negshocks.dta", gen(shock_merge)
 merge m:1 a01 using "$pathout\hhid.dta", gen(hhID_merge)
 merge 1:1 a01 using "$pathin/001_mod_a_male.dta", gen(miss_merge)
 
+clonevar intDate = a16_mm
+recode intDate (10 = 1) (11 = 2)(12 = 3)(1 = 4)(2 = 5)(3 = 6)
+la def date 1 "Oct 2011" 2 "Nov 2011" 3 "Dec 2011" 4 "Jan 2012" 5 "Feb 2012" 6 "Mar 2012"
+la val intDate date
+
 /* NOTE: Assuming that missing information is equivalent to zero; Validate for all vars */
 * Note missingness in variables: Mostly related to asset losses
 
@@ -252,6 +257,7 @@ merge 1:1 a01 using "$pathin/001_mod_a_male.dta", gen(miss_merge)
    There was quite a large number of households (about 45% of sample households) that did not report 
    any negative shocks in five years prior to the survey.*/
 mdesc 
+
 
 * Replace missing information with zeros noting potential introduction of bias here.
 foreach x of varlist edshkpos - loancopeMahajanR  {

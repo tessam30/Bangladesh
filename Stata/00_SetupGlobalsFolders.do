@@ -33,7 +33,8 @@ foreach x of local required_ados {
 * Determine path for the study 
 *global projectpath "U:/"
 global projectpath "C:/Users/t/Documents/"
-*global projectpath "C:/Users/t/Box Sync/"
+*global projectpath "C:/Users/t/Box Sync/".
+global projectpath "C:/Users/Tim/Documents/"
 cd "$projectpath"
 
 * Run a macro to set up study folder (needs to be modified)
@@ -70,6 +71,7 @@ global date $S_DATE
 local dir `c(pwd)'
 global path "`dir'"
 global pathdo2 "C:/Users/t/Documents/GitHub/Bangladesh/Stata"
+global pathdo2 "C:/Users/Tim/Documents/GitHub/Bangladesh/Stata"
 *global pathdo "`dir'/Stata"
 global pathlog  "`dir'/Log"
 global pathin "`dir'/Datain"
