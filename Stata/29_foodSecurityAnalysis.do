@@ -1,17 +1,3 @@
-/*-------------------------------------------------------------------------------
-# Name:		29_foodSecurityAnalysis
-# Purpose:	Analyze household food security using OLS and poisson models
-# Author:	Tim Essam, Ph.D.
-# Created:	2015/02/11
-# Modified: 2015/02/11
-# Owner:	USAID GeoCenter | OakStream Systems, LLC
-# License:	MIT License
-# Ado(s):	distinct; 
-# programs: 
-# Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
-#-------------------------------------------------------------------------------
-*/
-
 clear
 set more off
 use $pathout/shocks.dta
@@ -25,7 +11,6 @@ foreach x of local mlist {
 	local i = `i' + 1
 	}
 *
-
 * Merge in lat long for testing residuals
 drop div
 merge 1:1 a01 using "$pathSensitive/Geovariables.dta", gen(_mergegps)
@@ -107,16 +92,41 @@ recode educAdultF_cat (1 = 0) (2 = 1) (3 4 = 2)(5 6 = 3)
 la def educLab 0 "No education" 1 "Primary" 2 "Secondary" 3 "Tertiary"
 la val educAdultM_cat educLab
 la val educAdultF_cat educLab
-
 * Export a cut of data for Laura to use in data visualizations	
+compress
 sa "$pathexport/BNG_201509_all.dta", replace
+export excel using "$pathxls/BNG_201509_all.xlsx", sheet("BNG_201509_all") firstrow(variables) nolabel replace
 
+* Winsorize the cultivatable land variable to limit influence of outliers
+clonevar cultland_trim = cultland
+winsor2 cultland_trim, cuts(0 99) replace
+clonevar logland = cultland_trim
+replace logland = log(logland+1)
+
+* Religion of household head 
+clonevar religHoh = a13
+recode religHoh (1 = 0) (2 3 = 1)
+lab def relig 0 "Muslim" 1 "Hindu or Christian"
+la val religHoh relig 
+la var ftfzone "hh in ftfzone"
+la var 
+
+* Hoh primary occupation is in agriculture
+g byte farmOccupHoh = inlist(occupHoh, 1, 8) == 1
+la var farmOccupHoh "Hoh involved in agrarian livelihood"
+
+* Look at the various shocks by profession (LAURA plot)
+graph dot (mean) medexpshkR priceshkR agshkR hazardshkR, over(occupHoh)
 
 * Define possible exogenous variables
-global exog1 "femhead agehead marriedHead sexRatio adultEquiv i.literateHead i.educAdultM_cat i.educAdultF_cat"
-global exog2 "cultland TLUtotal distMarket landless i.migration" 
-global exog3 "wealthIndex"
-global geo "i.divName i.ftfzone"
+global demog1 "farmOccupHoh religHoh marriedHead femhead agehead c.agehead#c.agehead i.literateHead educAdultM_18 educAdultF_18"
+global demog2 "hhsize depRatio sexRatio mlabor flabor  "
+global assets "i.dfloor i.electricity i.latrineSealed i.mobile"
+global assets2 "landless logland i.migration" 
+global assets3 "wealthIndex TLUtotal "
+global geo "i.ftfzone distHealth distRoad distTown distMarket ib(3).divName ib(4).intDate"
+global stderr " ,cluster(district)"
+global stderr1 " ,cluster(uncode)"
 global FCSprice "FCS_price_staples FCS_price_pulse FCS_price_veg FCS_price_fruit FCS_price_fish FCS_price_dairy FCS_price_sugar FCS_price_fats"
 
 
@@ -125,11 +135,26 @@ global FCSprice "FCS_price_staples FCS_price_pulse FCS_price_veg FCS_price_fruit
 ******************
 * Medical shocks *
 ******************
-reg healthshk $exog1 $exog2 $exog3 $geo, cluster(divName)
+mean medexpshkR priceshkR hazardshkR agshkR
 
 
 
+est clear
+eststo med1, title("Medical 1"): reg medexpshkR $demog1 $demog2 $assets $assets2 $assets3 $geo $stderr 
+cap byte reg_sample = e(sample)
+eststo med2, title("Medical 2"): reg medexpshkR $demog1 $demog2 $assets2 $assets3 $geo $stderr
 
+eststo price1, title("Price 1"): reg priceshkR $demog1 $demog2 $assets $assets2 $assets3 $geo $stderr 
+eststo price2 , title("Price 2"): reg priceshkR $demog1 $demog2 $assets2 $assets3 $geo $stderr
+
+eststo haz1, title("Hazard 1"): reg hazardshkR $demog1 $demog2 $assets $assets2 $assets3 $geo $stderr
+eststo haz2, title("Hazard 2"): reg hazardshkR $demog1 $demog2 $assets2 $assets3 $geo $stderr
+
+eststo ag1, title("Ag 1"): reg agshkR $demog1 $demog2 $assets $assets2 $assets3 $geo $stderr
+eststo ag2, title("Ag 2"): reg agshkR $demog1 $demog2 $assets2 $assets3 $geo $stderr
+
+la var reg_sample "Sample used in regressions"
+esttab *
 
 
 

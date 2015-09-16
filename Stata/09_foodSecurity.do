@@ -134,6 +134,32 @@ egen dietDiversity = rsum2(bread rice tubers cereal veg fruit pulse /*
 la var dietDiversity "Dietary diversity based on number of foods consumed"
 recode dietDiversity (17 = 15)
 
+* Create diet Diversity using 9 food categories
+* 1) Cereals - 1, 2, 4 combine (bread, rice, cereal)
+* 2) Tubers - 3 
+* 3) Veg - 5
+* 4) Fruit - 6 
+* 5) Meat - (10 - 11) or meat + poultry
+* 6) eggs (8)
+* 7) fish (12)
+* 8) pulse (pulse + nut)
+* 9) dairy - 9
+* 10) 13 - oils
+* 11) 14 - sweets
+* 12) 15 - condiments
+
+g byte cereal2 = (bread == 1 | rice == 1 | cereal == 1)
+g byte meat2 = (meat == 1 | poultry == 1)
+g byte pulse2 = (pulse == 1 | nut == 1)
+
+egen dietDiv = rsum2(cereal2 tubers veg fruit pulse2 /*
+*/ egg dairy meat2 fish oil sweet cond)
+la var dietDiv "Dietary diversity based on 12 category FAO HDDS "
+recode dietDiv (17 = 15)
+
+
+
+
 
 *########## Food Consumption Scores ##########
 
@@ -252,13 +278,13 @@ restore
 
 * Create an export for making diet diversity plots in R
 preserve
-keep dietDiversity a01 div_name District_Name Upazila_Name
-order dietDiversity a01 div_name District_Name Upazila_Name
+keep dietDiversity dietDiv a01 div_name District_Name Upazila_Name
+order dietDiversity dietDiv a01 div_name District_Name Upazila_Name
 qui export delimited using "$pathexport\diet.diversity.csv", replace 
 restore
 
 * Keep select variables for now, can go back and pull in shares if needed.
-keep sample_type foodLack dietDiversity FCS dietDivFCS FCS_categ cereal_days tubers_days staples_days pulse_days /*
+keep sample_type foodLack dietDiversity FCS dietDivFCS dietDiv FCS_categ cereal_days tubers_days staples_days pulse_days /*
 */ veg_days fruit_days meat_days milk_days sugar_days oil_days a01
 save "$pathout/foodSecurity.dta", replace
 
@@ -543,7 +569,7 @@ foreach x of local fcstype {
 	
 	replace FCS_price_`x' = `x'tmp  if FCS_price_`x' == .
 	replace FCS_price_`x' = `x'tmp2 if FCS_price_`x' == .
-	replace FCS_price_`x' = `x'tmp3 if FCS_price_`x' == .	
+	replace FCS_price_`x' = `x'tmp3 if FCS_price_`x' == .
 	
 	drop `x'tmp*
 	}
