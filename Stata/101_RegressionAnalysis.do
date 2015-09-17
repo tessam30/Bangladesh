@@ -223,9 +223,9 @@ keep farmOccupHoh religHoh marriedHead femhead agehead literateHead educAdultM_c
 */ hhsize depRatio sexRatio mlabor flabor dfloor electricity latrineSealed mobile landless logland  /*
 */ migration wealthIndex TLUtotal_trim distHealth distRoad distMarket medexpshkR priceshkR agshkR  /*
 */ hazardshkR dietDiv FCS a01 latitude longitude 
-sa "$pathout/BGD_201509_SpatFilter.dta", replace
+saveold "$pathout/BGD_201509_SpatFilter.dta", replace version(13)
 restore
-
+bob
 
 
 
