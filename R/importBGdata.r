@@ -11,8 +11,8 @@
 source('~/GitHub/Bangladesh/R/setupFncnsBG.r')
 
 # -- Read in data --
-bgRaw = read_dta('~/Documents/USAID/Bangladesh/Data/BNG_201509_all.dta')
-bg = removeAttributes(bgRaw)
+bg = read_dta('~/Documents/USAID/Bangladesh/Data/BNG_201509_all.dta')
+
 
 child= read_dta('~/Documents/USAID/Bangladesh/Data/ChildHealth_ind.dta')
 
@@ -39,7 +39,6 @@ child = child %>%
 # 1) change / cleanup all theme files.
 # 2) Change all colors to soft black, consistent w/ other colors.
 # 3) Write quick style guide and setup AI files
-# 4) Import segoe
 # 5) get a base BG map with terrain, etc.
 
 
@@ -100,69 +99,123 @@ u = broom::tidy(t.test(ctrl, ftf))
 
 
 
-# by time -----------------------------------------------------------------
-bg_raw = read.csv('~/Downloads/bihs_usaid_4.23.2013/household/data/csv/038_mod_t1_male.CSV')
+# shocks by time, coping -----------------------------------------------------------------
+# ! Note!  Using the .dta file, not the publicly available one, since that shock
+# module does not include hh that didn't report a shock.
 
 t1_raw = read_dta('~/Documents/USAID/Bangladesh/Data/male_mod_t1_002.dta')
 
 nHH = length(unique(t1_raw$a01))
 
-t1_raw = t1_raw %>% 
+shk = removeAttributes(t1_raw) %>% 
   mutate(month = t1_04, year = t1_05, shkCode = t1_02,
          month = ifelse(month < 10, sprintf('%02d', month), month),
          time = ymd(paste0(year, month, '01')),
          shk = ifelse(t1_03 == 0, 0, 
                       ifelse(t1_03 > 0, 1, NA)),
-         shkCat = ifelse(
-           shkCode %in% 1:4, 'health',
-           ifelse(shkCode %in% c(9, 10, 11, 12, 13), 'ag',
-                  ifelse(shkCode %in% c(14, 15, 16, 17), 'asset2',
-                         ifelse(shkCode == 32, 'price', 'other')))
-         ))
+         shkCat = 
+           ifelse(shkCode %in% c(3,4), 'medexp',
+                  ifelse(shkCode %in% c(9, 10, 11, 12, 13), 'ag',
+                         ifelse(shkCode %in% c(14, 15, 16, 17), 'asset2',
+                                ifelse(shkCode == 32, 'price', 
+                                       ifelse(shkCode  %in% c(6, 9, 10, 11, 14, 16), 'hazard', 'other'))))),
+         cope1 = t1_08a, cope2 = t1_08b, cop3 = t1_08c,
+         goodCope = cope1 %in% c( 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24),
+         badCope = cope1 %in% c(2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18),
+         copeClass = ifelse(goodCope == 1, 'good',
+                            ifelse(badCope == 1, 'bad',
+                                   ifelse(cope1 == 1, 'none', NA))),
+         shkValue = t1_07, shkLength = t1_09, shkValPerDay = shkValue / shkLength
+  )
 
+dict = data.frame(key = 1:25, value = c('none',
+                                        'sold land',
+                                        'mortgaged land',
+                                        'sold productive asset',
+                                        'mortgaged productive asset',
+                                        'sold consumption asset',
+                                        'mortgaged consumption asset',
+                                        'took loan from NGO',
+                                        'took loan from mahajan',
+                                        'ate less food',
+                                        'ate lower quality food',
+                                        'removed kids from school',
+                                        'transferred kids to cheaper school',
+                                        'temporarily took different job',
+                                        'sent hh member away permanently',
+                                        'sent kids to relatives',
+                                        'sent kids to domestic service',
+                                        'sent kids to work',
+                                        'sent wife and kids to family',
+                                        'emergency receipt of remittance from family',
+                                        'forced to change occupation',
+                                        'moved to cheaper house',
+                                        'non-working hh member took job',
+                                        'took help from others',
+                                        'other'
+))
 
-x = t1_raw %>% 
-  group_by(shkCode, time) %>% 
-  summarise(nObs = n() / nHH) %>% 
-  filter(shkCode %in% c(3,4,9,10,14,15,16,19,32,34),
-         !is.na(time))
+shk = code2Cat(shk, dict, 'cope1', 'cope1Cat')
 
+# by freq. of coping mechanisms, sorted by good/bad shk
+shk$cope1Cat = factor(shk$cope1Cat,
+                      rev(c( 'took loan from mahajan',                      'took help from others',                      
+                             'took loan from NGO',                          'sold consumption asset',                     
+                             'emergency receipt of remittance from family', 'mortgaged consumption asset',                
+                             'non-working hh member took job', 'forced to change occupation',                
+                             'sent wife and kids to family',   
+                             'none',
+                             'ate less food',                   'mortgaged land',                  'sold productive asset',          
+                             'sold land',                       'ate lower quality food',          'mortgaged productive asset',     
+                             'temporarily took different job', ' removed kids from school',        'sent hh member away permanently',
+                             'sent kids to work',               'sent kids to domestic service',   'sent kids to relatives')))
 
-ggplot(x, aes(x = time, y = nObs)) +
-  geom_line(size = 1, colour = 'dodgerblue') +
-  facet_wrap(~shkCode) + 
-  theme_jointplot()
+# Sorted by median for med shks, grouped by good/bad
 
-x = bg_raw %>% 
-  group_by(shkCode, month) %>% 
-  summarise(nObs = n()) %>% 
-  filter(shkCode %in% c(4,32))
+shk$cope1Cat = factor(shk$cope1Cat,
+                      c('forced to change occupation', 
+                        'sold consumption asset', 
+                        'mortgaged consumption asset', 
+                        'emergency receipt of remittance from family', 
+                        'non-working hh member took job', 
+                        'took help from others', 
+                        'took loan from NGO', 
+                        'took loan from mahajan',
+                        'none',
+                        'sold land', 
+                        'mortgaged land', 
+                        'mortgaged productive asset', 
+                        'sold productive asset', 
+                        'ate less food', 
+                        'ate lower quality food',  
+                        'sent kids to relatives'))  
 
-ggplot(x, aes(x = month, y = nObs)) +
-  geom_point(size = 4, colour = 'salmon') +
-  facet_wrap(~shkCode, scales  = 'free_y') + 
-  theme_jointplot()
+# Sorted by median for med shks
+shk$cope1Cat = factor(shk$cope1Cat,
+                      rev(c(                                    'sold land', 
+                                                                 
+                                                                'sold consumption asset', 
+                                                                'mortgaged land', 
+                                                                'mortgaged consumption asset', 
+                                                                'emergency receipt of remittance from family', 
+                                                                'mortgaged productive asset', 
+                                                                'non-working hh member took job', 
+                                                                'sold productive asset', 
+                                                                'took help from others ',
+                                                                'took loan from NGO', 
+                                                                'took loan from mahajan', 
+                                                                'ate less food', 
+                                                                'forced to change occupation',
+                                                                'none', 
+                                                                'ate lower quality food',  
+                                                                'sent kids to relatives')))
 
+# -- Merge in with interesting categories from the household set
+shk = full_join(shk, bg, by = 'a01')
 
-x = bg_raw %>% 
-  group_by(shkCat, time) %>% 
-  summarise(nObs = n()) 
+# Recent shocks in the past 2 y.
+# ! Note: filters out hh without a shock.
+shkR = shk %>% 
+  filter(year > 2009) %>% 
+  mutate(logShkVal = log10(shkValue))
 
-ggplot(x, aes(x = time, y = nObs)) +
-  geom_line(size = 1, colour = 'seagreen') +
-  facet_wrap(~shkCat, scales  = 'free_y') + 
-  theme_jointplot()
-
-x = bg_raw %>% 
-  group_by(shkCat, month) %>% 
-  summarise(nObs = n()) 
-
-x = bg_raw %>% 
-  group_by(year, shkCat, month) %>% 
-  summarise(nObs = n()) %>% 
-  mutate(pct = nObs / sum(nObs))
-
-ggplot(x, aes(x = month, y = pct)) +
-  stat_summary(fun.y = 'mean', geom = 'point', size = 4, colour = 'tomato') +
-  facet_wrap(~shkCat, scales  = 'free_y') + 
-  theme_jointplot()

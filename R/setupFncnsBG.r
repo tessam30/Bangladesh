@@ -17,14 +17,17 @@ loadfonts()
 # library(choroplethrAdmin1)
 # library(choroplethr)
 
+
+# colors ------------------------------------------------------------------
 # Custom color libraries
 source("~/GitHub/Ethiopia/R/colorPalettes.R")
+
 
 # mutate with if/else dictionary function
 source("~/GitHub/Ethiopia/R/code2Cat.r")
 
-# Multiple plot function
-#
+
+# Multiple plot function --------------------------------------------------
 # ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
 # - cols:   Number of columns in layout
 # - layout: A matrix specifying the layout. If present, 'cols' is ignored.
@@ -69,6 +72,8 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
+
+# formatting numbers ------------------------------------------------------
 roundMean = function(x) {
   round(mean(x, na.rm = TRUE), 2)
 }
@@ -77,10 +82,21 @@ roundStd = function(x) {
   round(sd(x, na.rm = TRUE), 2)
 }
 
+percent = function(x, ndigits = 1) {
+  paste0(sprintf("%.f", round(x*100, ndigits)), "%")
+}
+
+
+
+# clean up environment ----------------------------------------------------
 rmExcept = function(x) {
   # x must be a string or a list of strings which encode the var names.
   rm(list=setdiff(ls(), x))
 }
+
+
+
+# remove attributes from dta import ---------------------------------------
 
 removeAttributes <- function (data) {
   data <- lapply(data, function(x) {attr(x, 'labels') <- NULL; x})
@@ -100,9 +116,6 @@ pullAttributes <- function (data) {
 }
 
 
-percent = function(x, ndigits = 1) {
-  paste0(sprintf("%.f", round(x*100, ndigits)), "%")
-}
 
 
 # themes ------------------------------------------------------------------
@@ -112,14 +125,15 @@ percent = function(x, ndigits = 1) {
 theme_jointplot <- function() {
   theme_bw() +
     theme(
-      axis.text = element_text(size = 16, color = '#4D525A'),
-      title =  element_text(size = 18, face = "bold", hjust = 0, color = '#4D525A'),
-      axis.title.y =  element_text(size = 20, face = "bold", color = '#4D525A', hjust = 0.5, vjust = 1),
-      axis.title.x =  element_text(size = 20, face = "bold", color = '#4D525A', hjust = 0.5, vjust = -0.25),
+      text = element_text(family = 'Segoe UI Light'),
+      axis.text = element_text(size = 16, color = grey50K, family = 'Segoe UI Light'),
+      title =  element_text(size = 18, family = 'Segoe UI', hjust = 0, color = grey60K),
+      axis.title.y =  element_text(size = 20, color = grey50K, family = 'Segoe UI Semilight', hjust = 0.5, vjust = 1),
+      axis.title.x =  element_text(size = 20, color = grey50K, family = 'Segoe UI Semilight', hjust = 0.5, vjust = -0.25),
       # axis.title.y = element_blank(), 
       # axis.line = element_blank(),
       # axis.ticks = element_blank()
-      strip.text = element_text(size=13, face = 'bold', color = '#4D525A'),
+      strip.text = element_text(size=13, color = grey50K, family = 'Segoe UI Semilight'),
       legend.position = c(0.85, 0.85),
       legend.text = element_text(size = 13),
       strip.background = element_blank()
@@ -203,7 +217,7 @@ theme_blankLH <- function() {
   axis.text = element_blank(),
   axis.ticks = element_blank(),
   axis.ticks.length = unit(0, units = 'points'),
-  axis.text.margin = unit(0, units =  'points'),
+  axis.ticks.margin = unit(0, units =  'points'),
   panel.border = element_blank(),
   plot.margin = rep(unit(0, units = 'points'),4),
   panel.grid = element_blank(),
@@ -232,11 +246,11 @@ theme_heatmap <- function() {
 
 
 theme_xOnly<- function() {
-  theme(title = element_text(size = 32, color = '#4D525A'),
-        axis.line = element_line(color = '#353839', size = 1),
-        axis.ticks.x = element_line(color = '#353839', size = 0.5),
-        axis.text.x = element_text(size = 16, color = '#4D525A'),
-        axis.title.x = element_text(size = 22, color = '#4D525A'),
+  theme(title = element_text(size = 32, color = grey90K),
+        axis.line = element_line(color = grey60K, size = 1),
+        axis.ticks.x = element_line(color = grey60K, size = 0.5),
+        axis.text.x = element_text(size = 16, color = grey60K, family = 'Segoe UI Light'),
+        axis.title.x = element_text(size = 22, color = grey60K, family = 'Segoe UI Semilight'),
         axis.text.y = element_blank(),
         axis.title.y = element_blank(), 
         axis.line.y = element_blank(),
@@ -250,6 +264,57 @@ theme_xOnly<- function() {
         panel.border = element_blank(),
         plot.margin = rep(unit(0, units = 'points'),4),
         panel.grid = element_blank(),
+        panel.background = element_blank(), 
+        strip.text = element_text(size=13, face = 'bold'),
+        strip.background = element_blank()
+  )
+}
+
+
+theme_xAxis_yText<- function() {
+  theme(title = element_text(size = 32, color = grey90K),
+        axis.line = element_line(color = grey60K, size = 1),
+        axis.ticks.x = element_line(color = grey60K, size = 0.5),
+        axis.text.x = element_text(size = 16, color = grey60K, family = 'Segoe UI Light'),
+        axis.title.x = element_text(size = 22, color = grey60K, family = 'Segoe UI Semilight'),
+        axis.text.y = element_text(size = 16, color = grey60K, family = 'Segoe UI Light'),
+        axis.title.y = element_blank(), 
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position="none",
+        panel.background = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = rep(unit(0, units = 'points'),4),
+        panel.grid = element_blank(),
+        panel.background = element_blank(), 
+        strip.text = element_text(size=13, face = 'bold'),
+        strip.background = element_blank()
+  )
+}
+
+
+theme_xGrid<- function() {
+  theme(title = element_text(size = 32, color = grey90K),
+        axis.line = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_text(size = 16, color = grey60K, family = 'Segoe UI Light'),
+        axis.title.x = element_text(size = 22, color = grey60K, family = 'Segoe UI Semilight'),
+        axis.text.y = element_text(size = 16, color = grey60K, family = 'Segoe UI Light'),
+        axis.title.y = element_blank(), 
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position="none",
+        panel.background = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_line(size = 0.1, colour = grey60K),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.border = element_blank(),
+        plot.margin = rep(unit(0, units = 'points'),4),
         panel.background = element_blank(), 
         strip.text = element_text(size=13, face = 'bold'),
         strip.background = element_blank()
