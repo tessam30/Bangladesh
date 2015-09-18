@@ -295,3 +295,30 @@ pairGrid (bg, shkVar = shkVar, regionVar = regionVar,
 
 
 
+# shock by profession -----------------------------------------------------
+View(bg %>% 
+  group_by(occupHoh, div_name) %>% 
+  summarise(avg = percent(mean(medexpshkR)), n()) %>% 
+  arrange(desc(avg)))
+
+View(bg %>%
+group_by(occupHoh == 8, div_name) %>%
+summarise(avg = percent(mean(medexpshkR)), n()) %>%
+arrange(desc(avg)))
+
+
+View(bg %>%
+       group_by(occupHoh) %>%
+       summarise(avg = percent(mean(hazardshkR)), n()) %>%
+       arrange(desc(avg)))
+
+View(bg %>%
+       group_by(occupHoh == 8, div_name) %>%
+       summarise(avg = percent(mean(hazardshkR)), n()) %>%
+       arrange(desc(avg)))
+
+
+
+# coping ------------------------------------------------------------------
+
+ß
