@@ -11,6 +11,7 @@ library(stringr)
 library(ggalt)
 library(lubridate)
 library(extrafont)
+library(coefplot)
 
 loadfonts()
 

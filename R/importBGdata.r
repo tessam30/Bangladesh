@@ -18,7 +18,7 @@ child= read_dta('~/Documents/USAID/Bangladesh/Data/ChildHealth_ind.dta')
 
 
 
-# Mutations ---------------------------------------------------------------
+# Merge children with hh-level data ---------------------------------------------------------------
 
 child = child %>% 
   mutate(stuntedBin = ifelse(stunted == 1, 1, 0), # Removing NAs to get an aggregate number
@@ -26,9 +26,11 @@ child = child %>%
          wastedBin = ifelse(wasted == 1, 1, 0),
          malnourished = stuntedBin + underwgtBin + wastedBin)
 
+# Should be 2911 unique children.
 
-# Exploration -------------------------------------------------------------
-
+child = left_join(child, bg,  
+              c("a01", "div_name", "District_Name", "Upazila_Name", 
+                "Union_Name", "hh_type", "a16_dd", "a16_mm", "a16_yy"))
 
 
 
@@ -43,59 +45,6 @@ child = child %>%
 
 
 
-# Import month data, since Tim deleted it ---------------------------------
-
-ctrl = child %>% 
-  filter(hh_type == 2, !is.na(stunted)) %>%
-  select(stunted)
-
-# stunted -----------------------------------------------------------------
-
-
-ftf = child %>% 
-  filter(hh_type == 1, !is.na(stunted)) %>% 
-  select(stunted)
-
-ftf = as.matrix(ftf)
-
-ctrl = as.matrix(ctrl)
-
-s = broom::tidy(t.test(ctrl, ftf))
-
-
-
-
-
-# wasted ------------------------------------------------------------------
-ctrl = child %>% 
-  filter(hh_type == 2, !is.na(wasted)) %>%
-  select(wasted)
-
-ftf = child %>% 
-  filter(hh_type == 1, !is.na(wasted)) %>% 
-  select(wasted)
-
-ftf = as.matrix(ftf)
-
-ctrl = as.matrix(ctrl)
-
-w = broom::tidy(t.test(ctrl, ftf))
-
-
-# underwgt ------------------------------------------------------------------
-ctrl = child %>% 
-  filter(hh_type == 2, !is.na(underwgt)) %>%
-  select(underwgt)
-
-ftf = child %>% 
-  filter(hh_type == 1, !is.na(underwgt)) %>% 
-  select(underwgt)
-
-ftf = as.matrix(ftf)
-
-ctrl = as.matrix(ctrl)
-
-u = broom::tidy(t.test(ctrl, ftf))
 
 
 
