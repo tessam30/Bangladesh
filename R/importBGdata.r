@@ -11,7 +11,7 @@
 source('~/GitHub/Bangladesh/R/setupFncnsBG.r')
 
 # -- Read in data --
-bg = read_dta('~/Documents/USAID/Bangladesh/Data/BNG_201509_all.dta')
+bg = read_dta('~/Documents/USAID/Bangladesh/Data/BGD_20150921_LAM.dta')
 
 # Calculate rooms per capita
 bg = bg %>% 
@@ -38,6 +38,12 @@ child = child %>%
          underwgtBin = ifelse(underwgt == 1, 1, 0),
          wastedBin = ifelse(wasted == 1, 1, 0),
          malnourished = stuntedBin + underwgtBin + wastedBin)
+
+recodeChildOrder = data.frame(key = 1:10, c('first born', 'second born', 'third born', 'fourth+ born', 'fourth+ born',
+                                            'fourth+ born', 'fourth+ born', 'fourth+ born', 'fourth+ born', 'fourth+ born'))
+
+child = code2Cat(df = child, dict = recodeChildOrder, 
+                 newVar = 'childOrderCat', oldVar = 'childCount') # Categorical variable, lumping in all kids that are 4th or higher child.
 
 # Should be 2911 unique children.
 
@@ -79,7 +85,9 @@ bg = left_join(bg, fish, by = c("a01"))
 
 # !!! Assumes if not in mod L1, doesn't fish.
 child = child %>% 
-  mutate(fishes = ifelse(is.na(fishes), 0, 1))
+  mutate(fishes = ifelse(is.na(fishes), 0, 1),
+         fishArea = ifelse(is.na(fishArea), 0, fishArea),
+         fishAreaDecile = ifelse(is.na(fishAreaDecile), 0, fishAreaDecile))
 
 
 

@@ -184,7 +184,13 @@ fish = fish %>%
   mutate(fishArea = ifelse(fishOpenWater == TRUE  & 
                              fishArea == 0, NA_real_, fishArea))
 
+fishBreaks = quantile(fish$fishArea, probs = seq(0,1, by = 0.1), na.rm = TRUE)
+fishBreaks[1] = 0
 
+fish = fish %>% 
+  mutate(fishAreaDecile = cut(fishArea, 
+                              breaks = fishBreaks,
+                              na.rm = TRUE, labels = FALSE))
 
 # fertilizer (module H3) --------------------------------------------------
 fertilizer = read.csv('~/Documents/USAID/Bangladesh/Data/household/data/csv/013_mod_h3_male.CSV')
@@ -200,4 +206,4 @@ fertilizer = fertilizer %>%
             orgFert = any(orgFert > 0),
             totPesticides = sum(pesticides, na.rm = TRUE),
             pesticides = any(pesticides > 0)
-            )
+  )
