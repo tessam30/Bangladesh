@@ -12,9 +12,6 @@
 */
 
 
-
-
-
 * Individual analysis using child malnutrition data and reverse merging (1:m) on hh char.
 clear
 use "$pathout/ChildHealth_indiv.dta"

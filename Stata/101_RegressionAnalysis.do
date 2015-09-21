@@ -179,7 +179,7 @@ eststo ag2, title("Ag 2"): $modeltype agshkR $demog1 $demog2 $assets2 $assets3 $
 linktest
 
 la var reg_sample "Sample used in regressions"
-esttab * 
+esttab price*, wide
 
 
 coefplot med1 ||  haz1 || ag1  ,  xline(0, lwidth(thin) lcolor(gray)) mlabs(small) ylabel(, labsize(tiny)) /*
@@ -213,16 +213,18 @@ preserve
 keep farmOccupHoh religHoh marriedHead femhead agehead literateHead educAdultM_cat2 educAdultF_cat2 /*
 */ hhsize depRatio sexRatio mlabor flabor dfloor electricity latrineSealed mobile landless logland  /*
 */ migration wealthIndex TLUtotal_trim distHealth distRoad distMarket medexpshkR priceshkR agshkR  /*
-*/ hazardshkR dietDiv FCS a01
+*/ hazardshkR dietDiv FCS a01 longitude latitude
+order a01 longitude latitude
 export excel using "$pathexport\BNG_201509_GWR.xls", sheet("BNG_GWR") firstrow(variables) nolabel replace
 restore
 
 * Export a copy of the dataset to R for spatial filter models
 preserve
-keep farmOccupHoh religHoh marriedHead femhead agehead literateHead educAdultM_cat2 educAdultF_cat2 /*
+keep a01 farmOccupHoh religHoh marriedHead femhead agehead literateHead educAdultM_cat2 educAdultF_cat2 /*
 */ hhsize depRatio sexRatio mlabor flabor dfloor electricity latrineSealed mobile landless logland  /*
 */ migration wealthIndex TLUtotal_trim distHealth distRoad distMarket medexpshkR priceshkR agshkR  /*
-*/ hazardshkR dietDiv FCS a01 latitude longitude 
+*/ hazardshkR dietDiv FCS a01 
+order a01 
 saveold "$pathout/BGD_201509_SpatFilter.dta", replace version(13)
 restore
 bob
