@@ -71,62 +71,101 @@ u = broom::tidy(t.test(ctrl, ftf))
 # totChild and hhsize redudant? under...
 # ?? what's educ?
 # calc rooms pc
-# Pull in: HFIAS, (X3)
-# health: infections, diahrrhea, etc. (W4)
-# fertilizer use. (H3)
-# Eliminate vars w/ low variation.
 # Underweight women
-# Y1_01: where child delivered
-# Y1_04: more breastfeeding info (first 3 days)
-# Y1_05: formula
-# Y1_06: still breastfeeding
-# Y1_07: age stop breastfeeding
-# Y1_09: age introduce foods
-# Y1_10: amt breastfed
-# Y1_11: milk prods
-# Y1_12: amt ate
-# Y1_13: food kid recall
-# Y1_18: sprinkles, 20, 21
-# 30, 35: who used micronutrient mixes
-# Y2: nutrition knowledge, health !**!!
-# Y4: immunizations
-# Y5_01: antenatal sessions, 04: feeding pgrm when pregn.
-# Y5_06: weeks addit food, preg. behavior + others
-# Y8-- health advice
-# Z3-01: used birth ctrl
+# ! pull out breastfeeding b/c redundant w/ age.  No variation.
+#!!! Illness-- is it kosher to convert everything to 0s?  How deal w/ low #s of NAs?
 
 
 # Define variables within model
-demogHH = c('stunted', 'farmOccupHoh', 'religHoh', 'marriedHead', 'femhead', 'agehead',
-            'hhsize', 'depRatio', 'sexRatio', 'fem10_19',  'femCount20_34' ,'femCount35_59',
-            'under24Share', 'under15Share', "divorceThreat",       "anotherWife",
-            "verbalAbuse", "physicalAbuse", 'femMoneyDecis',     
-           "femWork" ,  "femWorkMoney", 
+demogHH = c('farmOccupHoh', 'religHoh', 'marriedHead', 'femhead', 'agehead',
+            'hhsize', 'depRatio', 'roomsPC',
+            'sexRatio', 'fem10_19',  'femCount20_34' ,'femCount35_59',
+            'under24Share', 'under15Share', 
+            "femWork" , 
+            
+            # removed b/c missing data.
+            # "divorceThreat",       "anotherWife",
+            # "verbalAbuse", "physicalAbuse", 'femMoneyDecis',     
+           # "femWorkMoney", 
+           
             'mlabor', 'flabor', 'migration', 'occupSpouseHwife', 'singleHead')
-edu = c('literateHead', 'educAdultM_cat', 'educAdultF_cat', 
-        'educHoh', 'educSpouse', 'readOnlyHead')
-demogChild = c('gender', 'ageMonths', 'firstBorn', 'totChild', 'notFirstBorn', 'birthGap24Mos',
+edu = c('literateHead', 'educAdultM_cat012', 'educAdultF_cat012'
+        # Removed b/c redundant
+        # 'educHoh', 
+        # 'educSpouse', 
+        # 'readOnlyHead'
+        )
+
+demogChild = c('gender', 'ageMonths', 'firstBorn', 
+               'totChild', 'notFirstBorn', 'birthGap24Mos',
                'childCount')
+
 shk = c('medexpshkR', 'priceshkR', 'agshkR', 'hazardshkR')
-assets = c('dfloor', 'electricity',  'mobile', 'wealthIndex', 'TLUtotal', 'landless', 'logland')
-geo = c('ftfzone', 'distHealth', 'distRoad', 'distMarket', 'divName', 'intDate',
-        'savings', 'loans')
-nutrit = c('breastFed', 'FCS', 'dietDiv')
+
+assets = c('dfloor', 'electricity',  'mobile', 'wealthIndex', 
+           'savings', 'loans',
+           'TLUtotal', 'landless', 'logland', 
+           'fishes')
+           # , 'orgFert', 'pesticides') # Note: everyone uses some type of inorganic fertilizers somewhere.
+
+geo = c('ftfzone', 'distHealth', 'distRoad', 'distMarket', 'div_name', 'intDate'
+        )
+
+nutrit = c('breastFed', 'FCS', 'dietDiv', 'foodLack', 'sleepHungry', 'noFood')
+
 health = c('latrineSealed', 'treatWater',  "waterSource",
-           "privateWater",     "publicWater",      "treatWater",
-           "waterArsenicTest", "garbage")
+           "privateWater", "publicWater", "treatWater",
+           "garbage")
+
+varsYounguns = c('diarrhea', 
+           'fever',  'cough', 'throatInfect',
+           'rash',"useColostrum",         "giveWaterifHot",       "washHandsToilet",     
+           "washHandsPoopyBaby",   "washHandsEat",         "washHandsFeedKids",   
+           "washScore",            "BFwi1h",               "feedOnlyMilk",        
+           "feedEnoughFood",       "feedProtein",          "feedingScore",        
+           "antenatalCare",        "prenatFeedPgrm",       "tetVacWhilePreg",     
+           "ironWhilePreg",        "vitAafterPreg",           
+           "bornAtHome"
+           # Removed b/c too few obs.
+           # 'coughHH', 'rashHH',  'wtLoss', 'wtLossHH',
+#            'feverHH','throatHH', 'diarrheaHH',
+#            ,              "inorgFert",            "totInorg",            
+#            "orgFert",              "totPesticides",        "pesticides" 
+           )
+
+
+child = child %>% 
+  mutate(gender = factor(gender, levels = c(0,1)), # relative to males
+         ftfzone = factor(ftfzone, levels = c(0,1)), # relative to not FtF
+         educAdultF_cat012 = factor(educAdultF_cat012, 
+                                    levels = c('no education',
+                                               'primary', 'secondary+')),
+         educAdultM_cat012 = factor(educAdultM_cat012, 
+                                    levels = c('no education',
+                                               'primary', 'secondary+')),# relative to no ed
+         religHoh = factor(religHoh, levels = c(0,1)), # relative to Muslim
+         div_name = factor(div_name, levels = c('Khulna','Dhaka', 'Barisal',
+                                                'Rangpur', 'Chittagong','Rajshahi', 'Sylhet')) # relative to Khulna, lowest male (and overall) stunting.
+  ) 
+
+
 
 vars2test = c(demogHH, edu, demogChild, shk, assets, geo, nutrit, health)
   
-
+# vars2test = assets
 stunted = child %>% 
   filter(!is.na(stunted)) %>% 
-  select(one_of(vars2test))
+  dplyr::select(one_of(c('stunted', vars2test)))
+
+
+#? wlth index cont?  factor?
 
 # Check to make sure data are complete.
+stunted = na.omit(stunted)
 any(is.na(stunted))
 
 stuntedRegr = glm(stunted ~ ., data = stunted, family = binomial)
+
 
 stuntedRegr = glm(stunted ~ ., data = stunted, family = binomial(link = "logit"))
 
@@ -135,8 +174,81 @@ broom::tidy(stuntedRegr) %>%
   mutate(signif = p.value < 0.05)
 
 
+# MASS refinement of vars -------------------------------------------------
+stuntedRegr2 = stepAIC(stuntedRegr, direction = 'both')
+
+# starting 3227.1
+
+
 # coefplot(stuntedRegr)
 
 # Things that have shown up: 
 # fcs, breast feeding, mobiles, priceshk, childCt, firstborn,
 # age months, educ, flabor, domestic shit, # females, hhsize
+
+
+# stunting, under 2’s -----------------------------------------------------
+vars2test = c(demogHH, edu, demogChild, shk, 
+              assets, geo, nutrit, health, varsYounguns)
+
+stunted2y = child %>% 
+  filter(!is.na(stunted),
+         ageMonths < 25) %>% 
+  select(one_of(c('stunted', vars2test)))
+
+# Check to make sure data are complete.
+stunted2y = na.omit(stunted2y)
+any(is.na(stunted2y))
+
+stunted2yRegr = glm(stunted ~ ., data = stunted2y, family = binomial(link = "logit"))
+
+library(MASS)
+stunted2yRegr2 = stepAIC(stunted2yRegr, direction = 'both')
+
+
+broom::tidy(stuntedRegr) %>% 
+  mutate(signif = p.value < 0.05)
+
+# wasting -----------------------------------------------------------------
+
+wasted = child %>% 
+  filter(!is.na(wasted),
+         ageMonths< 25) %>% 
+  select(one_of(c('wasted',vars2test)))
+
+# Check to make sure data are complete.
+wasted = na.omit(wasted)
+any(is.na(wasted))
+
+wastedRegr = glm(wasted ~ ., data = wasted, family = binomial)
+
+wastedRegr = glm(wasted ~ ., data = wasted, family = binomial(link = "logit"))
+
+summary(wastedRegr)
+
+broom::tidy(wastedRegr) %>% 
+  mutate(signif = p.value < 0.05)
+# Prelim: ftf, firstborn, eduF, domestic shit
+
+wastedRegr2 = stepAIC(wastedRegr, direction = 'both')
+
+# underweight -----------------------------------------------------------------
+
+underwgt = child %>% 
+  filter(!is.na(underwgt)) %>% 
+  select(one_of(c('underwgt',vars2test)))
+
+# Check to make sure data are complete.
+underwgt = na.omit(underwgt)
+any(is.na(underwgt))
+
+underwgtRegr = glm(underwgt ~ ., data = underwgt, family = binomial)
+
+underwgtRegr = glm(underwgt ~ ., data = underwgt, family = binomial(link = "logit"))
+
+
+broom::tidy(underwgtRegr) %>% 
+  mutate(signif = p.value < 0.05)
+# Prelim: dirt, priceshk, childct, childtot, age, eduSp, flabor
+
+underwgtRegr2 = stepAIC(underwgtRegr, direction = 'both')

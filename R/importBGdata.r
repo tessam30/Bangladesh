@@ -13,8 +13,21 @@ source('~/GitHub/Bangladesh/R/setupFncnsBG.r')
 # -- Read in data --
 bg = read_dta('~/Documents/USAID/Bangladesh/Data/BNG_201509_all.dta')
 
+# Calculate rooms per capita
+bg = bg %>% 
+  mutate(roomsPC = totRooms / hhsize,
+         educAdultM_cat012 = ifelse(educAdultM_18 %in% c(0,1), 'no education',
+                                    ifelse(educAdultM_18 == 2, 'primary',
+                                           ifelse(educAdultM_18 %in% c(3:6), 'secondary+',
+                                                  NA))),
+         educAdultF_cat012 = ifelse(educAdultF_18 %in% c(0,1), 'no education',
+                                    ifelse(educAdultF_18 == 2, 'primary',
+                                           ifelse(educAdultF_18 %in% c(3:6), 'secondary+',
+                                                  NA)))
+         )
 
-child= read_dta('~/Documents/USAID/Bangladesh/Data/ChildHealth_ind.dta')
+
+child = read_dta('~/Documents/USAID/Bangladesh/Data/ChildHealth_ind.dta')
 
 
 
@@ -33,20 +46,50 @@ child = left_join(child, bg,
                 "Union_Name", "hh_type", "a16_dd", "a16_mm", "a16_yy"))
 
 
+# merge children w/ illness (W4) data -------------------------------------
+
+source('~/GitHub/Bangladesh/R/importOtherMods.R')
+
+child = left_join(child, illness, by = c("a01", "mid"))
+
+
+# merge children w/ food security (X3) data -------------------------------------
+
+child = left_join(child, foodSec, by = c("a01"))
+
+
+# merge children w/ nutritional knowledge data (Y2) -----------------------
+child = left_join(child, nutKnowl, by = c("a01"))
 
 
 
-# to do -------------------------------------------------------------------
-
-# 1) change / cleanup all theme files.
-# 2) Change all colors to soft black, consistent w/ other colors.
-# 3) Write quick style guide and setup AI files
-# 5) get a base BG map with terrain, etc.
+# merge children w/ knowledge about nutrition (Y3) ------------------------
+child = left_join(child, feeding, by = c("a01"))
 
 
+# merge children w/ prenatal care (Y5) ------------------------------------
+
+child = left_join(child, prenatal, by = c("a01", "mid"))
+
+
+# merge children w/ fish production (L1) ----------------------------------
+child = left_join(child, fish, by = c("a01"))
+
+bg = left_join(bg, fish, by = c("a01"))
+
+# !!! Assumes if not in mod L1, doesn't fish.
+child = child %>% 
+  mutate(fishes = ifelse(is.na(fishes), 0, 1))
 
 
 
+# merge children w/ fertilizer use ----------------------------------------
+child = left_join(child, fertilizer, by = c("a01"))
+
+ggplot(child, aes(x = totPesticides, y = stunted)) +
+  stat_summary(fun.y = mean, geom = 'point', size = 5)+
+  stat_smooth(method = "loess", size = 0.9, span = 0.5, fill = NA) +
+  theme_jointplot()
 
 # shocks by time, coping -----------------------------------------------------------------
 # ! Note!  Using the .dta file, not the publicly available one, since that shock

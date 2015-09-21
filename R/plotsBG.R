@@ -59,8 +59,7 @@ child %>%
 # stunting by age, sex ----------------------------------------------------
 colorGrey = '#D1D3D4' # 20% K
 colorRegion = 'dodgerblue'
-colorMale = '#27aae1'
-colorFemale = '#E37686'
+
 yMax = 0.6
 width1 = 6
 height1 = 3
@@ -321,4 +320,26 @@ View(bg %>%
 
 # coping ------------------------------------------------------------------
 
-ß
+
+# breast feeding ----------------------------------------------------------
+childPlot = removeAttributes(child)
+
+ggplot(childPlot, aes(x = ageMonths, y = breastFed, colour = factor(gender))) + 
+  stat_smooth(method = "loess", size = 0.9, span = 0.5, fill = NA) +
+  scale_y_continuous(labels = percent, limits = c(0,1)) +
+  scale_colour_manual(values = c("0" = colorMale, "1" = colorFemale),
+                      name= "",
+                      labels = c('male', 'female')) +
+  xlim(c(0, 60)) +
+  xlab('age (months)') +
+  # stat_summary(fun.y = mean, geom = 'point', size = 5) +
+  theme_xygrid() +
+  ggtitle('Percent of children currently being breastfed') +
+  theme(legend.position =c(0.85, 0.85),
+        legend.text = element_text(size = 14, family = "Segoe UI Semilight", 
+                                   color = grey60K, hjust = 0.5, vjust = -0.25))
+
+
+# where ppl fish ----------------------------------------------------------
+
+ggplot(bg, aes(x = latitude, y = longitude, colour = factor(fishes))) + geom_point(alpha = 0.3,size = 4) + theme_blankLH()

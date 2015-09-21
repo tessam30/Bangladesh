@@ -1,3 +1,4 @@
+library(MASS)
 library(haven)
 library(dplyr)
 library(ggplot2)
@@ -12,6 +13,9 @@ library(ggalt)
 library(lubridate)
 library(extrafont)
 library(coefplot)
+library(roxygen2)
+library(testthat)
+
 
 loadfonts()
 
@@ -24,8 +28,17 @@ loadfonts()
 source("~/GitHub/Ethiopia/R/colorPalettes.R")
 
 
+
+# recode variables --------------------------------------------------------
 # mutate with if/else dictionary function
 source("~/GitHub/Ethiopia/R/code2Cat.r")
+
+convert01 = function(varName) {
+  paste0('ifelse(', varName, ' == 2, 0, 
+                  ifelse(', varName, '== 1, 1, NA))')
+  
+  # mutate_(.dots= setNames(list(convert01('w4_04')), ''))
+}
 
 
 # Multiple plot function --------------------------------------------------
@@ -170,12 +183,13 @@ theme_box_ygrid<- function() {
 theme_xygrid<- function() {
   theme_bw() +
     theme(
+      text = element_text(family = 'Segoe UI Light', colour = grey60K),
       rect = element_blank(),
       plot.background = element_blank(),
       # panel.background = element_rect(fill = 'white'),
-      axis.text = element_text(size = 12, color = '#4D525A'),
-      title =  element_text(size = 15, face = "bold", hjust = 0, color = '#4D525A'),
-      axis.title.x =  element_text(size = 14, face = "bold", color = '#4D525A', hjust = 0.5, vjust = -0.25),
+      axis.text = element_text(size = 12,  color = grey60K),
+      title =  element_text(size = 15, family = "Segoe UI", hjust = 0, color = grey90K),
+      axis.title.x =  element_text(size = 14, family = "Segoe UI Semilight", color = grey60K, hjust = 0.5, vjust = -0.25),
       axis.title.y = element_blank(), 
       # axis.line = element_blank(),
       # axis.ticks = element_blank()
