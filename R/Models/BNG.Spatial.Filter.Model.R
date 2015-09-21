@@ -65,13 +65,14 @@ plot(d.gps2[d.gps2$priceshkR == 1, ], col = "red", add = TRUE)
 
 # --- Set up a spatial weights matrix for regressions
 # Using a distance threshold of 100 to ensure everyone has a neighbor
-xy <- as.matrix(d.gps[2:3])
+xy <- as.matrix(cbind(d.gps$longitude, d.gps$latitude))
 distThresh <- dnearneigh(xy, 0, 100, longlat = TRUE)
 
 # Set up a distance threshold of a weights matrix within 100km
 weights <- nb2listw(distThresh, style = "W")
 
-# Use dummy to create dummy vars; Not program is a bit buggy hence all the repetition; TODO: redo in dplyreducMDum <
+# Use dummy to create dummy vars; This is old code and isn't needed for new analysis assuming we want baselevel
+# to be no-education; Can just use factors to accomplish the same
 educMDum <- dummy(d.gps$educAdultM_cat2)
 educMDum <- as.data.frame(educMDum)
 educMDum <- rename(educMDum, No_educ_male = educAdultM_cat20,
@@ -92,6 +93,7 @@ exog.all <- dplyr::select(d.reg, farmOccupHoh, religHoh, marriedHead, femhead, a
                           Primary_male, Secondary_male, Primary_female, Secondary_female,
                           hhsize, depRatio, sexRatio, mlabor, flabor, dfloor, electricity,
                           latrineSealed, mobile, landless, migration)
+
 exog.all2 <- dplyr::select(d.reg, farmOccupHoh, religHoh, marriedHead, femhead, agehead, literateHead,
                            Primary_male, Secondary_male, Primary_female, Secondary_female,
                            hhsize, depRatio, sexRatio, mlabor, flabor, landless, migration,
@@ -116,6 +118,18 @@ EV <- as.data.frame( eig$vectors[ ,eig$values/eig$values[1] > 0.25])
 
 # Format a pipeline for the regressions
 source("C:/Users/Tim/Documents/GitHub/Bangladesh/R/Models/results.formatter.R")
+
+# Define clustering function as described in paper
+cl   <- function(dat,fm, cluster){
+  M <- length(unique(cluster))
+  N <- length(cluster)
+  K <- fm$rank
+  dfc <- (M/(M-1))*((N-1)/(N-K))
+  uj  <- apply(estfun(fm),2, function(x) tapply(x, cluster, sum));
+  vcovCL <- dfc*sandwich(fm, meat=crossprod(uj)/N)
+  coeftest(fm, vcovCL)
+}
+
 
 # Set up formatting for table and alignment of columns
 two_digits <- . %>% fixed_digits(3)
@@ -148,7 +162,7 @@ write.csv(EV.gps, file = "Eigenvectors.2014.csv")
 # Spatial Filter Models Start #
 #-----------------------------#
 
-exog <- as.matrix(exog.all2)
+exog <- as.matrix(exog.all)
 modeltype <- binomial(link = "logit")
 #modeltype <- gaussian()
 

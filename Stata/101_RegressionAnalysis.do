@@ -223,7 +223,7 @@ preserve
 keep a01 farmOccupHoh religHoh marriedHead femhead agehead literateHead educAdultM_cat2 educAdultF_cat2 /*
 */ hhsize depRatio sexRatio mlabor flabor dfloor electricity latrineSealed mobile landless logland  /*
 */ migration wealthIndex TLUtotal_trim distHealth distRoad distMarket medexpshkR priceshkR agshkR  /*
-*/ hazardshkR dietDiv FCS a01 
+*/ hazardshkR dietDiv FCS a01 longitude latitude
 order a01 
 saveold "$pathout/BGD_201509_SpatFilter.dta", replace version(13)
 restore

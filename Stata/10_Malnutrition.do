@@ -168,10 +168,10 @@ compress
 save "$pathout/ChildHealth_ind.dta", replace
 
 * Collapse data down to household level
-include "$pathdo/copylabels.do"
+include "$pathdo2/copylabels.do"
 collapse (mean) stunted underwgt wasted BMIed (mean) stunting height weight gender /*
 */ underweight wasting, by(a01 div_name District_Name Upazila_Name Union_Name)
-include "$pathdo/attachlabels.do"
+include "$pathdo2/attachlabels.do"
 
 save "$pathout/ChildHealth_hh.dta", replace
 

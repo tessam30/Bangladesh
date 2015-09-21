@@ -70,7 +70,7 @@ foreach dir in `folders' {
 global date $S_DATE
 local dir `c(pwd)'
 global path "`dir'"
-global pathdo2 "C:/Users/t/Documents/GitHub/Bangladesh/Stata"
+*global pathdo2 "C:/Users/t/Documents/GitHub/Bangladesh/Stata"
 global pathdo2 "C:/Users/Tim/Documents/GitHub/Bangladesh/Stata"
 *global pathdo "`dir'/Stata"
 global pathlog  "`dir'/Log"
