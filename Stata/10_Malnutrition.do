@@ -45,7 +45,9 @@ g ageMonths = (intday - bday)/(365/12)
 replace ageMonths = round(ageMonths, 1)
 
 * How many children in household? Including those from other mothers
-bys a01 (ageMonths): gen childCount = _n
+bys a01 (ageMonths): gen childCountRev = _n
+gsort a01 -ageMonths
+bys a01: gen childCount = _n
 bys a01 (ageMonths): gen totChild = _N
 sum childCount, d
 la var childCount "Order of the child"
