@@ -65,6 +65,10 @@ child = left_join(child, illness, by = c("a01", "mid"))
 child = left_join(child, foodSec, by = c("a01"))
 
 
+# merge children w/ micronutrient info (Y1) -------------------------------
+child = left_join(child, micronut, by = c("a01", 'mid'))
+
+
 # merge children w/ nutritional knowledge data (Y2) -----------------------
 child = left_join(child, nutKnowl, by = c("a01"))
 
@@ -77,6 +81,10 @@ child = left_join(child, feeding, by = c("a01"))
 # merge children w/ prenatal care (Y5) ------------------------------------
 
 child = left_join(child, prenatal, by = c("a01", "mid"))
+
+
+# merge children w/ health pgrms (Y8) --------------------------------------
+child = left_join(child, healthWorkers, by = c("a01"))
 
 
 # merge children w/ fish production (L1) ----------------------------------

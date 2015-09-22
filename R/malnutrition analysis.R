@@ -117,17 +117,18 @@ health = c()
 # 'coughHH', 'rashHH',  'wtLoss', 'wtLossHH',
 #                       'feverHH','throatHH', 'diarrheaHH')
 
-varsYounguns = c('diarrhea', 
-           'fever',  'cough', 'throatInfect',
-           'rash',"useColostrum",         "giveWaterifHot",       "washHandsToilet",     
-           "washHandsPoopyBaby",   "washHandsEat",         "washHandsFeedKids",   
-           "washScore",            "BFwi1h",               "feedOnlyMilk",        
-           "feedEnoughFood",       "feedProtein",          "feedingScore",        
-           "antenatalCare",        "prenatFeedPgrm",       "tetVacWhilePreg",     
-           "ironWhilePreg",        "vitAafterPreg",           
-           "bornAtHome"
-           # Removed b/c too few obs.
-#            ,              "inorgFert",            "totInorg",            
+varsYounguns = c('diarrhea', 'coughHH', 'rashHH',  'wtLoss', 'wtLossHH',
+                 'feverHH','throatHH', 'diarrheaHH',
+                 'fever',  'cough', 'throatInfect',
+                 'rash',"useColostrum",         "giveWaterifHot",       "washHandsToilet",     
+                 "washHandsPoopyBaby",   "washHandsEat",         "washHandsFeedKids",   
+                 "washScore",            "BFwi1h",               "feedOnlyMilk",        
+                 "feedEnoughFood",       "feedProtein",          "feedingScore",        
+                 "antenatalCare",        "prenatFeedPgrm",       "tetVacWhilePreg",     
+                 "ironWhilePreg",        "vitAafterPreg",           
+                 "bornAtHome", 'healthWorkerCame', 'receivedNutAdvice', 'gotHealthAdvice'
+           # Removed b/c too few obs., all same.
+           # ,              "inorgFert",            "totInorg",            
            )
 
 
@@ -172,7 +173,8 @@ vars2test = c(demogHH, edu, demogChild, shk, assets, geo, nutrit, health, durGoo
 # vars2test = wealth
 stunted = child %>% 
   filter(!is.na(stunted)) %>% 
-  dplyr::select(one_of(c('stunted', 'a01', 'latitude', 'longitude', vars2test)))
+  dplyr::select(one_of(c('stunted', 'a01', 'Union_Name',
+                         'latitude', 'longitude', vars2test)))
 
 
 
@@ -193,7 +195,7 @@ stunted = stunted %>%
 # MODEL 1: most generic form of redundant vars ----------------------------
 stuntedRegr = glm(stunted ~ . 
                   - a01 - firstBorn - waterAccess - privateWater
-                  - fishes
+                  - fishes - Union_Name
                   - latitude - longitude, data = stunted, family = binomial(link = "logit"))
 
 
@@ -213,6 +215,8 @@ stuntedRegr3 = glm(formula = stunted ~ marriedHead + femhead + hhsize + roomsPC 
                      intDate + hhsize + under15Share + div_name + educAdultM_cat012 + educAdultF_cat012, 
                    data = stunted, family = binomial(link = "logit"))
 stuntedRegr3Cl = cl(stunted, stuntedRegr3, stunted$a01)
+
+stuntedRegr3Clunion = cl(stunted, stuntedRegr3, stunted$Union_Name)
 
 # MODEL 4: Sensitivity analysis: first-born -------------------------------
 stuntedRegr4 = glm(formula = stunted ~ marriedHead + femhead + hhsize + roomsPC + 
@@ -439,7 +443,8 @@ for (i in 1:length(varsYounguns)) {
   
   
   stunted11 = child %>% 
-    filter(!is.na(stunted)) %>% 
+    filter(!is.na(stunted),
+           ageMonths < 25) %>% 
     dplyr::select(one_of(c('stunted', 'a01', 'latitude', 'longitude', vars2test)))
   
   
@@ -464,6 +469,7 @@ for (i in 1:length(varsYounguns)) {
   
   print(summary(stunted11Regr))
 }
+
 # Plot the residuals. -----------------------------------------------------
 # Residuals seem pretty evenly dispersed.
 # ! Note-- need to pull out from the clustered model.
@@ -535,6 +541,46 @@ wastedRegr3 = glm(formula = wasted ~   ageMonths +
 
 wastedRegr3Cl = cl(wasted, wastedRegr3, wasted$a01)
 
+# MODEL 4: using same vars as stunting ------------------------------------
+vars2test = c('marriedHead',  'femhead',  'hhsize',  'roomsPC',  
+              'mlabor',  'flabor',  'gender',  'ageMonths',  'priceshkR',  'latrineSealed',  
+              'brickTinHome',  'landless',  'fishAreaDecile', 'fishOpenWater', 
+              'distMarket',  'intDate',  'FCS',   
+              'intDate',  'hhsize',  'under15Share',  'div_name',  'educAdultM_cat012',  'educAdultF_cat012',
+              durGoods)
+
+
+wasted4 = child %>% 
+  filter(!is.na(wasted)) %>% 
+  dplyr::select(one_of(c('wasted', 'a01', 'latitude', 'longitude', vars2test)))
+
+
+
+# Check to make sure data are complete.
+wasted4 = na.omit(wasted4)
+any(is.na(wasted4))
+print(paste0('number people removed: ', nrow(child) - nrow(wasted4)))
+
+# Creating durable goods index, based on PCA
+durGoodsIdx = prcomp(wasted4 %>% dplyr::select(one_of(durGoods)),
+                     center = TRUE, scale. = TRUE)
+
+wasted4 = wasted4 %>% 
+  mutate(durGoodsIdx = durGoodsIdx$x[,1]) %>% 
+  select(-one_of(durGoods))
+
+
+wasted4Regr = glm(wasted ~ . 
+                    - a01
+                    - latitude - longitude, data = wasted4, family = binomial(link = "logit"))
+
+wastedRegr4Cl = cl(wasted4, wasted4Regr, wasted4$a01)
+
+
+
+
+
+
 # underweight -----------------------------------------------------------------
 underwgt = child %>% 
   filter(!is.na(underwgt)) %>% 
@@ -580,6 +626,44 @@ underwgtRegr3 = glm(formula = underwgt ~ roomsPC + femCount35_59 + femWork +
                   data = underwgt, family = binomial(link = "logit"))
 
 underwgtRegr3Cl = cl(underwgt, underwgtRegr3, underwgt$a01)
+
+
+# MODEL 4: using same vars as stunting ------------------------------------
+vars2test = c('marriedHead',  'femhead',  'hhsize',  'roomsPC',  
+              'mlabor',  'flabor',  'gender',  'ageMonths',  'priceshkR',  'latrineSealed',  
+              'brickTinHome',  'landless',  'fishAreaDecile', 'fishOpenWater', 
+              'distMarket',  'intDate',  'FCS',   
+              'intDate',  'hhsize',  'under15Share',  'div_name',  'educAdultM_cat012',  'educAdultF_cat012',
+              durGoods)
+
+
+underwgt4 = child %>% 
+  filter(!is.na(underwgt)) %>% 
+  dplyr::select(one_of(c('underwgt', 'a01', 'latitude', 'longitude', vars2test)))
+
+
+
+# Check to make sure data are complete.
+underwgt4 = na.omit(underwgt4)
+any(is.na(underwgt4))
+print(paste0('number people removed: ', nrow(child) - nrow(underwgt4)))
+
+# Creating durable goods index, based on PCA
+durGoodsIdx = prcomp(underwgt4 %>% dplyr::select(one_of(durGoods)),
+                     center = TRUE, scale. = TRUE)
+
+underwgt4 = underwgt4 %>% 
+  mutate(durGoodsIdx = durGoodsIdx$x[,1]) %>% 
+  select(-one_of(durGoods))
+
+
+underwgt4Regr = glm(underwgt ~ . 
+                   - a01
+                   - latitude - longitude, data = underwgt4, family = binomial(link = "logit"))
+
+underwgtRegr4Cl = cl(underwgt4, underwgt4Regr, underwgt4$a01)
+
+
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
