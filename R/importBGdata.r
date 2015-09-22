@@ -16,15 +16,16 @@ bg = read_dta('~/Documents/USAID/Bangladesh/Data/BGD_20150921_LAM.dta')
 # Calculate rooms per capita
 bg = bg %>% 
   mutate(roomsPC = totRooms / hhsize,
-         educAdultM_cat012 = ifelse(educAdultM_18 %in% c(0,1), 'no education',
-                                    ifelse(educAdultM_18 == 2, 'primary',
-                                           ifelse(educAdultM_18 %in% c(3:6), 'secondary+',
-                                                  NA))),
+         educAdultM_cat012 = ifelse(femhead == 1, 'no education',
+                                    ifelse(educAdultM_18 %in% c(0,1), 'no education',
+                                           ifelse(educAdultM_18 == 2, 'primary',
+                                                  ifelse(educAdultM_18 %in% c(3:6), 'secondary+',
+                                                         NA)))),
          educAdultF_cat012 = ifelse(educAdultF_18 %in% c(0,1), 'no education',
                                     ifelse(educAdultF_18 == 2, 'primary',
                                            ifelse(educAdultF_18 %in% c(3:6), 'secondary+',
-                                                  NA)))
-         )
+                                                  'no education')))
+  )
 
 
 child = read_dta('~/Documents/USAID/Bangladesh/Data/ChildHealth_ind.dta')
@@ -48,8 +49,8 @@ child = code2Cat(df = child, dict = recodeChildOrder,
 # Should be 2911 unique children.
 
 child = left_join(child, bg,  
-              c("a01", "div_name", "District_Name", "Upazila_Name", 
-                "Union_Name", "hh_type", "a16_dd", "a16_mm", "a16_yy"))
+                  c("a01", "div_name", "District_Name", "Upazila_Name", 
+                    "Union_Name", "hh_type", "a16_dd", "a16_mm", "a16_yy"))
 
 
 # merge children w/ illness (W4) data -------------------------------------
@@ -87,6 +88,7 @@ bg = left_join(bg, fish, by = c("a01"))
 child = child %>% 
   mutate(fishes = ifelse(is.na(fishes), 0, 1),
          fishArea = ifelse(is.na(fishArea), 0, fishArea),
+         fishOpenWater = ifelse(is.na(fishOpenWater), 0, 1),
          fishAreaDecile = ifelse(is.na(fishAreaDecile), 0, fishAreaDecile))
 
 
@@ -98,6 +100,11 @@ ggplot(child, aes(x = totPesticides, y = stunted)) +
   stat_summary(fun.y = mean, geom = 'point', size = 5)+
   stat_smooth(method = "loess", size = 0.9, span = 0.5, fill = NA) +
   theme_jointplot()
+
+# merge children w/ tobacco use ----------------------------------------
+child = left_join(child, tobacco, by = c("a01"))
+# UGH.  NO NAs.
+
 
 # shocks by time, coping -----------------------------------------------------------------
 # ! Note!  Using the .dta file, not the publicly available one, since that shock
@@ -193,7 +200,7 @@ shk$cope1Cat = factor(shk$cope1Cat,
 # Sorted by median for med shks
 shk$cope1Cat = factor(shk$cope1Cat,
                       rev(c(                                    'sold land', 
-                                                                 
+                                                                
                                                                 'sold consumption asset', 
                                                                 'mortgaged land', 
                                                                 'mortgaged consumption asset', 

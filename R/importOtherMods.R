@@ -10,21 +10,36 @@ illness = illness %>%
   mutate_(.dots= setNames(list(convert01('w4_11')), 'rash')) %>% 
   mutate_(.dots= setNames(list(convert01('w4_13')), 'throatInfect')) %>% 
   select(a01, mid, 
-         wtLoss, fever,feverLen = w4_06, 
+      wtLoss, fever,feverLen = w4_06, 
          diarrhea, diarrheaLen = w4_08,
          cough, coughLen = w4_10, 
          rash, rashLen = w4_12,
          throatInfect, throatLen = w4_14)
 
 
+
+
 illnessHH = illness %>% 
   group_by(a01) %>% 
-  summarise(wtLossHH = any(wtLoss == 1),
-            feverHH = any(fever == 1),
-            diarrheaHH = any(diarrhea == 1),
-            coughHH = any(cough == 1),
-            rashHH = any(rash == 1),
-            throatHH = any(throatInfect == 1))
+  summarise(wtLossHH = sum(wtLoss, na.rm = TRUE),
+            wtLossNA = all(is.na(wtLoss)),
+            feverHH = sum(fever, na.rm = TRUE),
+            feverNA = all(is.na(fever)),
+            diarrheaHH = sum(diarrhea, na.rm = TRUE),
+            diarrheaNA = all(is.na(diarrhea)),
+            coughHH = sum(cough, na.rm = TRUE),
+            coughNA = all(is.na(cough)),
+            rashHH = sum(rash, na.rm = TRUE),
+            rashNA = all(is.na(rash)),
+            throatHH = sum(throatInfect, na.rm = TRUE),
+            throatNA = all(is.na(throatInfect))) %>% 
+  mutate(wtLossHH = ifelse(wtLossNA == 1, NA, wtLossHH > 0),
+         rashHH = ifelse(rashNA == 1, NA, rashHH > 0),
+         feverHH = ifelse(feverNA == 1, NA, feverHH > 0),
+         diarrheaHH = ifelse(diarrheaNA == 1, NA, diarrheaHH > 0),
+         coughHH = ifelse(coughNA == 1, NA, coughHH > 0),
+         throatHH = ifelse(throatNA == 1, NA, throatHH > 0)
+         )
 
 illness = full_join(illness, illnessHH, by = 'a01')
 
@@ -40,7 +55,7 @@ foodSec = foodSec %>%
             noFood = any(x3_05 == 1))
 
 
-# micronutrients ----------------------------------------------------------
+# micronutrients (mod Y1)-------------------------------------------------------
 micronut = read.csv('~/Documents/USAID/Bangladesh/Data/household/data/csv/052_mod_y1_female.CSV')
 
 micronut = micronut %>% 
@@ -207,3 +222,16 @@ fertilizer = fertilizer %>%
             totPesticides = sum(pesticides, na.rm = TRUE),
             pesticides = any(pesticides > 0)
   )
+
+
+
+# Tobacco use -------------------------------------------------------------
+tobacco = read.csv('~/Documents/USAID/Bangladesh/Data/household/data/csv/031_mod_o1_female.CSV')
+
+tobacco = tobacco %>% 
+  filter(o1_01 == 314) %>% 
+  mutate(tobacco = ifelse(
+    o1_02 == 1, 1, 
+    ifelse(o1_02 == 2, 0, NA)
+  )) %>% 
+  select(a01, tobacco)
