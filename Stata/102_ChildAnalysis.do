@@ -14,9 +14,33 @@
 
 * Individual analysis using child malnutrition data and reverse merging (1:m) on hh char.
 clear
-use "$pathout/ChildHealth_indiv.dta"
+*use "$pathout/ChildHealth_indiv.dta"
+use "$pathout/child_noattr_2015-09-22LH.dta"
 
-* Merge all data sets together
+* Specifications from Laura's model in R
+* gender == 2 for females
+global demog "religHoh marriedHead femhead agehead totChild roomsPC adultEquiv sexRatio femCount20_34 femCount35_59 under15Share femWork flabor mlabor"
+global educ "literateHead i.educAdultM_cat2 i.educAdultF_cat2 firstBorn"
+global cDemog "i.gender##c.ageMonths##c.ageMonths"
+global assets "landless logland TLUtotal_trim fishAreaDecile fishes migration electricity"
+global geo "distHealth distRoad distTown distMarket ib(4).intDate"
+global wealth "latrineSealed brickTinHome dfloor mobile FCS"
+global shocks "medexpshk priceshk"
+
+eststo stunt: logit stunted $demog $educ $cDemog $assets $geo $wash $shocks ib(3).divName, cluster(a01)
+eststo stunt1: logit stunted $demog $educ $cDemog $assets $geo wealthIndex $shocks, cluster(a01)
+esttab stunt stunt1, se star(* 0.10 ** 0.05 *** 0.01) label 
+
+eststo stunt2: logit stunted $demog $educ $cDemog $assets $geo $wash $shocks ib(3).divName if ageMonths <=24, cluster(a01)
+eststo stunt3: logit stunted $demog $educ $cDemog $assets $geo $wash $shocks ib(3).divName if ageMonths >24, cluster(a01)
+esttab stunt2 stunt3, se star(* 0.10 ** 0.05 *** 0.01) label 
+
+margins gender, at(ageMonths =(6(3)60)) vsquish
+marginsplot, noci
+
+
+
+/* Merge all data sets together
 local mlist hhchar hhinfra hhpc hhTLU_pc finances nc remittances foodSecurity
 local i = 1
 foreach x of local mlist {
@@ -36,7 +60,42 @@ encode div_name, gen(divName)
 encode District_Name, gen(distName)
 
 * HH composotion
-bys a01: gen hhUnder5=_N
+bys a01: gen hhUnder5=_N */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 global exog1 "gender gender#c.ageMonths ageMonths c.ageMonths#c.ageMonths hhUnder5 hhSize sexRatio depRatio hhlabor femhead agehead educAdult"
 global exog2 "$exog1 FCS dietDiversity privateWater latrineSealed distHealth distMarket"

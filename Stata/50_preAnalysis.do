@@ -14,16 +14,16 @@ clear
 capture log close
 log using "$pathlog/50_preAnalysis", replace
 
-do "$pathdo/01_hhchar.do"
-do "$pathdo/02_hhinfra.do"
-do "$pathdo/03_hhpc.do"
-do "$pathdo/04_tlus.do"
-do "$pathdo/05_nc.do"
-do "$pathdo/06_financial.do"
-do "$pathdo/07_shocks.do"
-do "$pathdo/08_remittances.do"
-do "$pathdo/09_foodSecurity.do"
-do "$pathdo/11_womensStatus.do"
+do "$pathdo2/01_hhchar.do"
+do "$pathdo2/02_hhinfra.do"
+do "$pathdo2/03_hhpc.do"
+do "$pathdo2/04_tlus.do"
+do "$pathdo2/05_nc.do"
+do "$pathdo2/06_financial.do"
+do "$pathdo2/07_shocks.do"
+do "$pathdo2/08_remittances.do"
+do "$pathdo2/09_foodSecurity.do"
+do "$pathdo2/11_womensStatus.do"
 bob
 
 clear

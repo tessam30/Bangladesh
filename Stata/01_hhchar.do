@@ -88,6 +88,10 @@ g byte numDepRatio = (b1_02<15 | b1_02>64)
 g byte demonDepRatio = numDepRatio!=1 
 egen totNumDepRatio = total(numDepRatio), by(a01)
 egen totDenomDepRatio = total(demonDepRatio), by(a01)
+g byte hhShareOver64t = (b1_02 > 64)
+egen over64 = total(hhShareOver64t), by(a01)
+g over64share = over64 / hhsize
+drop hhShareOver64t
 
 * Check that numbers add to hhsize
 assert hhsize == totNumDepRatio+totDenomDepRatio

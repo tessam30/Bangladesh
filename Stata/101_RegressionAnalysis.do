@@ -179,8 +179,7 @@ eststo ag2, title("Ag 2"): $modeltype agshkR $demog1 $demog2 $assets2 $assets3 $
 linktest
 
 la var reg_sample "Sample used in regressions"
-esttab price*, wide
-
+esttab med* haz* ag*
 
 coefplot med1 ||  haz1 || ag1  ,  xline(0, lwidth(thin) lcolor(gray)) mlabs(small) ylabel(, labsize(tiny)) /*
 */ msize(small) /*mc(black) mlsty(black) mcolor(red) mlstyle(p1)*/ xlabel(, labsize(small)) cismooth norecycle/*
@@ -239,8 +238,9 @@ bob
 * Set dietary diversity price macro to obtain all food groups
 * Run three types of models to check robustness of estimates; Not worry about potential endogeneity of wealth for now 
 * Can think about instrumenting for it later or even instrumenting for pcexpenditures
-eststo dd1, title("Diet Diversity 1"): $modeltype dietDiv $demog1 $demog2 $assets $assets2  $geo  FCS_price* $stderr1
-eststo dd2, title("Diet Diversity 2"): $modeltype dietDiv $demog1 $demog2 $assets2 $assets3 $geo  FCS_price* $stderr1
+est clear
+eststo dd1, title("Diet Diversity 1"): $modeltype FCS $demog1 $demog2 $assets $assets2  $geo medexpshkR hazardshkR  $stderr1
+eststo dd2, title("Diet Diversity 2"): $modeltype FCS $demog1 $demog2 $assets2 $assets3 $geo medexpshkR hazardshkR  $stderr1
 eststo ddPOI: poisson dietDiv $demog1 $demog2 $assets $assets2  $geo FCS_price*, vce(robust)
 eststo ddPOI2: poisson dietDiv $demog1 $demog2 $assets2 $assets3 $geo FCS_price*, vce(robust)
 eststo ddTPOI: tpoisson dietDiv $demog1 $demog2 $assets $assets2  $geo FCS_price*, ll(0) vce(robust)
