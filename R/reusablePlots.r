@@ -13,10 +13,19 @@ shkHeatmap = function (df,
     select(one_of(c(shockCols, regionCol)))
   
   # -- Calculate mean for each region, and transform into a tidy array. --
-  df_rel = df %>% 
+  df_reg = df %>% 
     group_by_(regions = regionCol) %>% 
     select_(paste0('-', regionCol)) %>% 
-    summarise_each(funs(mean)) %>% 
+    summarise_each(funs(mean))
+  
+  # -- Calculate average shock frequency over the sample. --
+  df_avg = df %>% 
+    select_(paste0('-', regionCol)) %>% 
+    summarise_each(funs(mean))
+  
+  # -- Convert the avg. to relative averag from the mean. --
+
+    # %>% 
     gather(shocks, rel_mean, -regions)
   
   
@@ -27,22 +36,9 @@ shkHeatmap = function (df,
   df_rel$regions = factor(df_rel$regions, orderRegions)
   
   
-  # -- Calculate average shock frequency over the sample. --
-  avgHealth = shock_stats2014_avg$healthShk[1]
-  avgPrice = shock_stats2014_avg$priceShk[1]
-  avgHazard = shock_stats2014_avg$hazardShk[1]
+
   
-  
-  # -- Convert the avg. to relative averag from the mean. --
-  df = df %>% 
-    mutate(rel_mean = ifelse(
-      shocks == 'health', mean - avgHealth, 
-      ifelse(
-        shocks == 'price', mean - avgPrice,
-        mean - avgHazard
-      )
-    ))
-  
+
   # -- limits for the heatmap. --
   relRange = c(-0, 0.25)
   
@@ -67,6 +63,7 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
                      # Region names
                      annotAdj = 0.02,
                      sizeAnnot = 7, 
+                     regionOrder = NA,
                      # Percent labels
                      sizePct = 5,
                      sizeDot = 6, borderDot = 1,
@@ -75,6 +72,9 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
                      # Controlling average point:
                      lineAvgAdj = 2.75, sizeAvg = 0.05,
                      xLabAdj = 0,
+                     # S.E. bars
+                     colorSE = grey10K,
+                     alphaSE = 1,
                      # Height/width for output
                      heightAvg = 3.4,
                      widthAvg = 4.2, 
@@ -113,12 +113,21 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
   xAvg = countryAvg$avg
   
   
+  if (is.na(regionOrder)) {
+    orderVar = 'x'
+    
+    regionOrder = 1:numRegions
+  } else {
+    orderVar = 'order'
+  }
+  
   avgVals = df %>% 
     group_by_(regionVar) %>% 
     rename_(.dots = setNames(regionVar, 'names')) %>% 
     summarise_(.dots = setNames(c(meanFormula, stdFormula, numFormula), 
                                 c('x', 'std', 'numHH'))) %>% 
-    arrange(x) %>%  # sort, so highest shocks are at top.
+    mutate(order = regionOrder) %>% 
+    arrange_(orderVar) %>%  # sort, so highest shocks are at top.
     mutate(lb = x - (std * confidFactor)/sqrt(numHH), 
            ub = x + (std * confidFactor)/sqrt(numHH),
            ymin = seq(from = 10, by = 10, length.out = numRegions),
@@ -157,7 +166,8 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
   geom_vline(xint = xAvg, linetype = 1, color = grey50K, size = sizeAvg) +
     
     # -- Add in S.E. --
-    geom_rect(aes(xmin = lb, xmax = ub, ymin = ymin - 0.5, ymax = ymax + 0.5, fill = grey10K)) +
+    geom_rect(aes(xmin = lb, xmax = ub, ymin = ymin - 0.5, ymax = ymax + 0.5, 
+                  fill = colorSE), alpha = alphaSE) +
     scale_fill_identity()+
     
     # -- Overlay the points --
@@ -236,6 +246,8 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
          compress = FALSE,
          scale = 2,
          dpi = 300)
+  
+  return(mainPlot)
 }
 
 

@@ -96,7 +96,7 @@ bg = left_join(bg, fish, by = c("a01"))
 child = child %>% 
   mutate(fishes = ifelse(is.na(fishes), 0, 1),
          fishArea = ifelse(is.na(fishArea), 0, fishArea),
-         fishOpenWater = ifelse(is.na(fishOpenWater), 0, 1),
+         fishOpenWater = ifelse(is.na(fishOpenWater), 0, fishOpenWater),
          fishAreaDecile = ifelse(is.na(fishAreaDecile), 0, fishAreaDecile))
 
 
@@ -123,6 +123,7 @@ t1_raw = read_dta('~/Documents/USAID/Bangladesh/Data/male_mod_t1_002.dta')
 nHH = length(unique(t1_raw$a01))
 
 shk = removeAttributes(t1_raw) %>% 
+  filter(t1_10 %in% c(1,2)) %>%  # remove shocks that aren't first or second most important.
   mutate(month = t1_04, year = t1_05, shkCode = t1_02,
          month = ifelse(month < 10, sprintf('%02d', month), month),
          time = ymd(paste0(year, month, '01')),
@@ -130,10 +131,10 @@ shk = removeAttributes(t1_raw) %>%
                       ifelse(t1_03 > 0, 1, NA)),
          shkCat = 
            ifelse(shkCode %in% c(3,4), 'medexp',
-                  ifelse(shkCode %in% c(9, 10, 11, 12, 13), 'ag',
-                         ifelse(shkCode %in% c(14, 15, 16, 17), 'asset2',
+                  # ifelse(shkCode %in% c(9, 10, 11, 12, 13), 'ag',
+                         # ifelse(shkCode %in% c(14, 15, 16, 17), 'asset2',
                                 ifelse(shkCode == 32, 'price', 
-                                       ifelse(shkCode  %in% c(6, 9, 10, 11, 14, 16), 'hazard', 'other'))))),
+                                       ifelse(shkCode  %in% c(6, 9, 10, 11, 14, 16), 'hazard', 'other'))),
          cope1 = t1_08a, cope2 = t1_08b, cop3 = t1_08c,
          goodCope = cope1 %in% c( 6, 7, 8, 9, 13, 19, 20, 21, 22, 23, 24),
          badCope = cope1 %in% c(2, 3, 4, 5, 10, 11, 12, 14, 15, 16, 17, 18),
@@ -171,59 +172,6 @@ dict = data.frame(key = 1:25, value = c('none',
 ))
 
 shk = code2Cat(shk, dict, 'cope1', 'cope1Cat')
-
-# by freq. of coping mechanisms, sorted by good/bad shk
-shk$cope1Cat = factor(shk$cope1Cat,
-                      rev(c( 'took loan from mahajan',                      'took help from others',                      
-                             'took loan from NGO',                          'sold consumption asset',                     
-                             'emergency receipt of remittance from family', 'mortgaged consumption asset',                
-                             'non-working hh member took job', 'forced to change occupation',                
-                             'sent wife and kids to family',   
-                             'none',
-                             'ate less food',                   'mortgaged land',                  'sold productive asset',          
-                             'sold land',                       'ate lower quality food',          'mortgaged productive asset',     
-                             'temporarily took different job', ' removed kids from school',        'sent hh member away permanently',
-                             'sent kids to work',               'sent kids to domestic service',   'sent kids to relatives')))
-
-# Sorted by median for med shks, grouped by good/bad
-
-shk$cope1Cat = factor(shk$cope1Cat,
-                      c('forced to change occupation', 
-                        'sold consumption asset', 
-                        'mortgaged consumption asset', 
-                        'emergency receipt of remittance from family', 
-                        'non-working hh member took job', 
-                        'took help from others', 
-                        'took loan from NGO', 
-                        'took loan from mahajan',
-                        'none',
-                        'sold land', 
-                        'mortgaged land', 
-                        'mortgaged productive asset', 
-                        'sold productive asset', 
-                        'ate less food', 
-                        'ate lower quality food',  
-                        'sent kids to relatives'))  
-
-# Sorted by median for med shks
-shk$cope1Cat = factor(shk$cope1Cat,
-                      rev(c(                                    'sold land', 
-                                                                
-                                                                'sold consumption asset', 
-                                                                'mortgaged land', 
-                                                                'mortgaged consumption asset', 
-                                                                'emergency receipt of remittance from family', 
-                                                                'mortgaged productive asset', 
-                                                                'non-working hh member took job', 
-                                                                'sold productive asset', 
-                                                                'took help from others ',
-                                                                'took loan from NGO', 
-                                                                'took loan from mahajan', 
-                                                                'ate less food', 
-                                                                'forced to change occupation',
-                                                                'none', 
-                                                                'ate lower quality food',  
-                                                                'sent kids to relatives')))
 
 # -- Merge in with interesting categories from the household set
 shk = full_join(shk, bg, by = 'a01')

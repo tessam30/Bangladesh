@@ -721,3 +721,5 @@ ftf = as.matrix(ftf)
 ctrl = as.matrix(ctrl)
 
 u = broom::tidy(t.test(ctrl, ftf))
+
+write_dta(child, '~/Documents/USAID/Bangladesh/Data/childwithfish_2015-09-22LH.dta')
