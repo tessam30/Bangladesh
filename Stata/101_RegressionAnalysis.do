@@ -143,7 +143,7 @@ graph dot (mean) medexpshkR priceshkR agshkR hazardshkR, over(occupHoh)
 
 * Define possible exogenous variables
 global demog1 "farmOccupHoh religHoh marriedHead femhead agehead c.agehead#c.agehead i.literateHead i.educAdultM_cat2 i.educAdultF_cat2"
-global demog2 "hhsize depRatio sexRatio mlabor flabor  "
+global demog2 "hhsize over64share under15Share sexRatio mlabor flabor  "
 global assets "i.dfloor i.electricity i.latrineSealed i.mobile"
 global assets2 "landless logland i.migration" 
 global assets3 "wealthIndex TLUtotal_trim "
@@ -226,7 +226,6 @@ keep a01 farmOccupHoh religHoh marriedHead femhead agehead literateHead educAdul
 order a01 
 saveold "$pathout/BGD_201509_SpatFilter.dta", replace version(13)
 restore
-bob
 
 
 
@@ -235,11 +234,19 @@ bob
 * Food Consumption Scores *
 ***************************
 
+* Add in aquaculture vars
+merge 1:1 a01 using "$pathout/aquaculture.dta", gen(aqua_merge) force
+recode fishes (. = 0)
+recode fishOpenWater (. = 0)
+tab fishes fishOpenWater, mi
+recode fishArea  (. = 0)
+global fish "fishes fishOpenWater fishArea"
+
 * Set dietary diversity price macro to obtain all food groups
 * Run three types of models to check robustness of estimates; Not worry about potential endogeneity of wealth for now 
 * Can think about instrumenting for it later or even instrumenting for pcexpenditures
 est clear
-eststo dd1, title("Diet Diversity 1"): $modeltype FCS $demog1 $demog2 $assets $assets2  $geo medexpshkR hazardshkR  $stderr1
+eststo dd1, title("Diet Diversity 1"): $modeltype FCS $demog1 $demog2 $assets $assets2 fishOpenWater fishArea $geo medexpshkR hazardshkR  $stderr1
 eststo dd2, title("Diet Diversity 2"): $modeltype FCS $demog1 $demog2 $assets2 $assets3 $geo medexpshkR hazardshkR  $stderr1
 eststo ddPOI: poisson dietDiv $demog1 $demog2 $assets $assets2  $geo FCS_price*, vce(robust)
 eststo ddPOI2: poisson dietDiv $demog1 $demog2 $assets2 $assets3 $geo FCS_price*, vce(robust)

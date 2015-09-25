@@ -15,31 +15,68 @@
 * Individual analysis using child malnutrition data and reverse merging (1:m) on hh char.
 clear
 *use "$pathout/ChildHealth_indiv.dta"
-use "$pathout/child_noattr_2015-09-22LH.dta"
+
+use "$pathin\059_mod_y8_female.dta", clear
+
+clonevar hcWorkerVisit = y8_01
+recode hcWorkerVisit (88 2 = 0)
+
+clonevar tvBFeeding = y8_12
+recode tvBFeeding (99 2 . = 0)
+keep a01 tvBFeeding hcWorkerVisit
+sa "$pathout/healthInfo.dta", replace
+
+use "$pathin/070_mod_weai_wc_female.dta", clear
+g byte femaleOwnsOperatesCell = (wc02_k ==1  & wc03_k ==1) 
+g byte femaleOwnsOperatesBirds = (wc02_d ==1 &  wc03_d== 1)
+g byte femaleOwnsOperatesSmLvstk = (wc02_c ==1 & wc03_c == 1)
+g byte femaleOwnsOperatesLgLvstk = (wc03_b ==1 & wc04_b==1)
+ren wa01 a01
+
+keep a01 female*
+sa "$pathout/femaleAssets.dta", replace
+use "$pathout/child_foreign_2015-09-23LH.dta"
+
+* Bring in nutrition practices information
+merge m:1 a01 using "$pathout/healthInfo.dta"
+keep if _merge == 3
+drop _merge
+merge m:1 a01 using "$pathout/femaleAssets.dta"
+keep if _merge == 3
+drop _merge
+
+* HH has a fish farm
+g byte fishFarm = fishArea > 0
 
 * Specifications from Laura's model in R
 * gender == 2 for females
-global demog "religHoh marriedHead femhead agehead totChild roomsPC adultEquiv sexRatio femCount20_34 femCount35_59 under15Share femWork flabor mlabor"
-global educ "literateHead i.educAdultM_cat2 i.educAdultF_cat2 firstBorn"
+global demog "religHoh marriedHead femhead agehead totChild roomsPC femCount20_34 femCount35_59 under15Share femWork flabor mlabor"
+global educ "literateHead educAdultM_cat2 educAdultF_cat2 firstBorn"
 global cDemog "i.gender##c.ageMonths##c.ageMonths"
-global assets "landless logland TLUtotal_trim fishAreaDecile fishes migration electricity"
+global cDmemog2 "gender ageMonths"
+global assets "landless logland TLUtotal_trim fishFarm fishOpenWater migration electricity FCS"
 global geo "distHealth distRoad distTown distMarket ib(4).intDate"
-global wealth "latrineSealed brickTinHome dfloor mobile FCS"
+global wealth "latrineSealed brickTinHome dfloor mobile privateWater "
+global gender "femaleOwnsOperatesCell femaleOwnsOperatesBirds femaleOwnsOperatesSmLvstk femaleOwnsOperatesLgLvstk hcWorkerVisit tvBFeeding"
 global shocks "medexpshk priceshk"
 
-eststo stunt: logit stunted $demog $educ $cDemog $assets $geo $wash $shocks ib(3).divName, cluster(a01)
-eststo stunt1: logit stunted $demog $educ $cDemog $assets $geo wealthIndex $shocks, cluster(a01)
-esttab stunt stunt1, se star(* 0.10 ** 0.05 *** 0.01) label 
-
-eststo stunt2: logit stunted $demog $educ $cDemog $assets $geo $wash $shocks ib(3).divName if ageMonths <=24, cluster(a01)
-eststo stunt3: logit stunted $demog $educ $cDemog $assets $geo $wash $shocks ib(3).divName if ageMonths >24, cluster(a01)
-esttab stunt2 stunt3, se star(* 0.10 ** 0.05 *** 0.01) label 
-
+est clear
+eststo stunt1: reg stunted $demog $educ $cDemog $assets $geo $wealth $shocks ib(3).divName, cluster(a01)
+eststo stunt1a: reg stunted $demog $educ $cDemog $assets $geo wealthIndex $shocks, cluster(a01)
 margins gender, at(ageMonths =(6(3)60)) vsquish
 marginsplot, noci
+matrix A = r(table)
+matselrc A B, r(1 2 )
+mat2txt, matrix(A) saving("$pathexport/stuntMFX") replace
 
 
+eststo stunt2: reg stunted $demog $educ $cDmemog2 $assets $geo $wealth $shocks ib(3).divName if ageMonths <=24, cluster(a01)
+eststo stunt2a: reg stunted $demog $educ $cDmemog2 $assets $geo wealthIndex $shocks ib(3).divName if ageMonths <=24, cluster(a01)
+eststo stunt3: reg stunted $demog $educ $cDmemog2 $assets $geo $wealth $shocks ib(3).divName if ageMonths >24, cluster(a01)
+eststo stunt3a: reg stunted $demog $educ $cDmemog2 $assets $geo wealthIndex $shocks ib(3).divName if ageMonths >24, cluster(a01)
+esttab stunt*, se star(* 0.10 ** 0.05 *** 0.01) label
 
+bob
 /* Merge all data sets together
 local mlist hhchar hhinfra hhpc hhTLU_pc finances nc remittances foodSecurity
 local i = 1

@@ -212,6 +212,9 @@ use "$pathin/039_mod_t2_male.dta", clear
 * Create positive shock variables
 g byte edshkpos = inlist(t2_02, 9, 10, 7) & inlist(t2_07, 1, 2) & t2_03 == 1
 la var edshkpos "Positive educational income shock"
+g byte edshkposR = inlist(t2_02, 9, 10, 7) & inlist(t2_07, 1, 2) & t2_03 == 1 & inlist(t2_05, 2010, 2011, 2012)
+la var edshkposR "Positive educational income shock"
+
 egen edshkTot = total(t2_06) if edshkpos == 1, by(a01)
 la var edshkTot "Total value of educational shock"
 

@@ -152,11 +152,16 @@ g byte under15t = b1_02<15
 egen under15 = total(under15t), by(a01)
 la var under15 "number of hh members under 15"
 egen under15male = total(under15t) if male==1, by(a01)
+egen under15female = total(under15t) if female == 1, by(a01)
 egen under15male_r = max(under15male), by(a01) //ac
+egen under15female_r = max(under15female), by(a01)
 replace under15male = under15male_r //ac
-drop under15male_r //ac
+replace under15female = under15female_r
+drop under15male_r  under15female_r //ac
 la var under15male "number of hh male members under 15"
-recode under15male (. = 0) if under15male==.
+la var under15female "number of hh female members under 15"
+recode under15male (. = 0) if under15male== .
+recode under15female (. = 0) if under15female == .
 
 * Number of hh members under 24
 g byte under24t = b1_02<24
