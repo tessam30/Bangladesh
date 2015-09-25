@@ -43,7 +43,7 @@ pairGrid(girlsStunting, 'stunted', 'div_name',
          xLim = c(0, .7), 
          colorDot = femaleGradient, rangeColors = c(0, 1), 
          colorSE = femaleGradient[2], alphaSE = 0.4, 
-         regionOrder = rev(c(1,4,3,7,6,2,5)))
+         regionOrder = rev(c(1,4,2,7,6,3,5)))
 
 
 
