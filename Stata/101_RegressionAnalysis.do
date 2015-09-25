@@ -240,19 +240,19 @@ recode fishes (. = 0)
 recode fishOpenWater (. = 0)
 tab fishes fishOpenWater, mi
 recode fishArea  (. = 0)
-global fish "fishes fishOpenWater fishArea"
+g byte fishFarm = fishArea > 0
+global fish "fishes fishFarm"
 
 * Set dietary diversity price macro to obtain all food groups
 * Run three types of models to check robustness of estimates; Not worry about potential endogeneity of wealth for now 
 * Can think about instrumenting for it later or even instrumenting for pcexpenditures
 est clear
-eststo dd1, title("Diet Diversity 1"): $modeltype FCS $demog1 $demog2 $assets $assets2 fishOpenWater fishArea $geo medexpshkR hazardshkR  $stderr1
-eststo dd2, title("Diet Diversity 2"): $modeltype FCS $demog1 $demog2 $assets2 $assets3 $geo medexpshkR hazardshkR  $stderr1
-eststo ddPOI: poisson dietDiv $demog1 $demog2 $assets $assets2  $geo FCS_price*, vce(robust)
-eststo ddPOI2: poisson dietDiv $demog1 $demog2 $assets2 $assets3 $geo FCS_price*, vce(robust)
-eststo ddTPOI: tpoisson dietDiv $demog1 $demog2 $assets $assets2  $geo FCS_price*, ll(0) vce(robust)
-eststo ddTPOI2: tpoisson dietDiv $demog1 $demog2 $assets2 $assets3 $geo FCS_price*, ll(0) vce(robust)
-esttab dd*
+eststo dd1, title("Diet Diversity 1"): $modeltype dietDiv $demog1 $demog2 $assets $assets2 $fish $geo medexpshkR hazardshkR  $stderr1
+eststo dd2, title("Diet Diversity 2"): $modeltype dietDiv $demog1 $demog2 $assets2 $assets3 $fish $geo medexpshkR hazardshkR  $stderr1
+eststo ddTPOI: tpoisson dietDiv $demog1 $demog2 $assets $assets2 $fish $geo medexpshkR hazardshkR , ll(0) cluster(uncode)
+eststo ddTPOI2: tpoisson dietDiv $demog1 $demog2 $assets2 $assets3 $fish $geo  medexpshkR hazardshkR , ll(0) cluster(uncode)
+esttab dd*, se star(* 0.10 ** 0.05 *** 0.01)  wide  se(4) r2(4) pr2 aic bic
+
 
 /* Main conclusions
 1) female education has large effects

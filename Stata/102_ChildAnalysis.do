@@ -39,10 +39,16 @@ use "$pathout/child_foreign_2015-09-23LH.dta"
 
 * Bring in nutrition practices information
 merge m:1 a01 using "$pathout/healthInfo.dta"
-keep if _merge == 3
+drop if _merge == 2
 drop _merge
 merge m:1 a01 using "$pathout/femaleAssets.dta"
-keep if _merge == 3
+drop if _merge == 2
+drop _merge
+
+* Bring in original demographic information
+merge m:1 a01 using "$pathout/hhchar.dta"
+
+keep if _merge==3
 drop _merge
 
 * HH has a fish farm
@@ -55,27 +61,36 @@ global educ "literateHead educAdultM_cat2 educAdultF_cat2 firstBorn"
 global cDemog "i.gender##c.ageMonths##c.ageMonths"
 global cDmemog2 "gender ageMonths"
 global assets "landless logland TLUtotal_trim fishFarm fishOpenWater migration electricity FCS"
-global geo "distHealth distRoad distTown distMarket ib(4).intDate"
+global geo "distHealth distRoad distTown distMarket ib(4).intDate ib(1).ftfzone"
 global wealth "latrineSealed brickTinHome dfloor mobile privateWater "
 global gender "femaleOwnsOperatesCell femaleOwnsOperatesBirds femaleOwnsOperatesSmLvstk femaleOwnsOperatesLgLvstk hcWorkerVisit tvBFeeding"
-global shocks "medexpshk priceshk"
+global shocks "medexpshkR priceshkR"
 
 est clear
 eststo stunt1: reg stunted $demog $educ $cDemog $assets $geo $wealth $shocks ib(3).divName, cluster(a01)
-eststo stunt1a: reg stunted $demog $educ $cDemog $assets $geo wealthIndex $shocks, cluster(a01)
+vif
+eststo stunt1L: logit stunted $demog $educ $cDemog $assets $geo $wealth $shocks ib(3).divName, cluster(a01)
+eststo stunt1a: reg stunted $demog $educ $cDemog $assets $geo wealthIndex $shocks ib(3).divName, cluster(a01)
+vif
+eststo stunt1aL: logit stunted $demog $educ $cDemog $assets $geo wealthIndex $shocks ib(3).divName, cluster(a01)
 margins gender, at(ageMonths =(6(3)60)) vsquish
 marginsplot, noci
 matrix A = r(table)
 matselrc A B, r(1 2 )
 mat2txt, matrix(A) saving("$pathexport/stuntMFX") replace
-
+esttab stunt1*, se star(* 0.10 ** 0.05 *** 0.01) label wide  se(4) r2(4) pr2 aic bic
 
 eststo stunt2: reg stunted $demog $educ $cDmemog2 $assets $geo $wealth $shocks ib(3).divName if ageMonths <=24, cluster(a01)
+eststo stunt2L: logit stunted $demog $educ $cDmemog2 $assets $geo $wealth $shocks ib(3).divName if ageMonths <=24, cluster(a01)
 eststo stunt2a: reg stunted $demog $educ $cDmemog2 $assets $geo wealthIndex $shocks ib(3).divName if ageMonths <=24, cluster(a01)
-eststo stunt3: reg stunted $demog $educ $cDmemog2 $assets $geo $wealth $shocks ib(3).divName if ageMonths >24, cluster(a01)
-eststo stunt3a: reg stunted $demog $educ $cDmemog2 $assets $geo wealthIndex $shocks ib(3).divName if ageMonths >24, cluster(a01)
-esttab stunt*, se star(* 0.10 ** 0.05 *** 0.01) label
+eststo stunt2La: logit stunted $demog $educ $cDmemog2 $assets $geo wealthIndex $shocks ib(3).divName if ageMonths <=24, cluster(a01)
 
+eststo stunt3: reg stunted $demog $educ $cDmemog2 $assets $geo $wealth $shocks ib(3).divName if ageMonths >24, cluster(a01)
+eststo stunt3L: logit stunted $demog $educ $cDmemog2 $assets $geo $wealth $shocks ib(3).divName if ageMonths >24, cluster(a01)
+eststo stunt3a: reg stunted $demog $educ $cDmemog2 $assets $geo wealthIndex $shocks ib(3).divName if ageMonths >24, cluster(a01)
+eststo stunt3La: logit stunted $demog $educ $cDmemog2 $assets $geo wealthIndex $shocks ib(3).divName if ageMonths >24, cluster(a01)
+esttab stunt2*, se star(* 0.10 ** 0.05 *** 0.01) label wide  se(4) r2(4) pr2 aic bic
+esttab stunt3*, se star(* 0.10 ** 0.05 *** 0.01) label wide  se(4) r2(4) pr2 aic bic
 bob
 /* Merge all data sets together
 local mlist hhchar hhinfra hhpc hhTLU_pc finances nc remittances foodSecurity
