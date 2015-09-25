@@ -6,26 +6,61 @@
 shkHeatmap = function (df,
                        shockCols,
                        regionCol,
-                       colorHeatmap = rev(PlBl)){
+                       orderShks,
+                       orderRegions,
+                       colorHeatmap = rev(PlBl),
+                       colorAvg = brewer.pal(9, 'YlOrRd'),
+                       widthWhite = 1,
+                       sizePctLab = 6,
+                       plotTitle = 'Percent difference from the national average',
+                       relRange = c(-0.15, 0.15),
+                       rangeAvg = c(0, 0.4)){
+  
   
   # -- Select the columns containing the shock names and the regions. --
   df = df %>% 
     select(one_of(c(shockCols, regionCol)))
   
   # -- Calculate mean for each region, and transform into a tidy array. --
-  df_reg = df %>% 
+  df_regions = df %>% 
     group_by_(regions = regionCol) %>% 
     select_(paste0('-', regionCol)) %>% 
     summarise_each(funs(mean))
+  
+  row.names(df_regions) = df_regions$regions
+  
+  df_regions  = df_regions %>% 
+    select(-regions)
+  
+  numRegions = nrow(df_regions)
   
   # -- Calculate average shock frequency over the sample. --
   df_avg = df %>% 
     select_(paste0('-', regionCol)) %>% 
     summarise_each(funs(mean))
   
-  # -- Convert the avg. to relative averag from the mean. --
-
-    # %>% 
+  # For overall plot
+  avg = df_avg %>% 
+    gather(shocks, avg)
+  avg$shocks = factor(avg$shocks, orderShks)
+  
+  if(nrow(df_avg) != 1) {
+    stop('you have a problem.  your country avg. does not give  a single value.')
+  }
+  
+  # Replicate to the number of regions
+  df_avg = df_avg[rep(1,numRegions),]
+  
+  
+  # -- Convert the avg. to relative average from the mean. --
+  df_rel = df_regions - df_avg
+  
+  # ! Hack for now, to flip the 
+  df_rel$edshkposR = df_rel$edshkposR * -1
+  
+  # Add back in region names
+  df_rel = df_rel %>% 
+    mutate(regions = row.names(df_rel)) %>% 
     gather(shocks, rel_mean, -regions)
   
   
@@ -36,18 +71,33 @@ shkHeatmap = function (df,
   df_rel$regions = factor(df_rel$regions, orderRegions)
   
   
-
   
-
-  # -- limits for the heatmap. --
-  relRange = c(-0, 0.25)
   
+  
+  # -- heat plot --
   ggplot(df_rel) +
-    geom_tile(aes(y = shocks, x = regions, fill = rel_mean), color = 'white', size = 1) +
+    geom_tile(aes(y = shocks, x = regions, fill = rel_mean), 
+              color = 'white', size = widthWhite) +
     scale_fill_gradientn(colours = colorHeatmap, limits = relRange) +
-    geom_text(aes(y = shocks, x = regions, label = sprintf('%.1f', round(rel_mean * 100,1))), size = 4) +
-    ggtitle('Household shocks per region') +
-    theme_heatmap()
+    geom_text(aes(y = shocks, x = regions, 
+                  label = sprintf('%.1f', round(rel_mean * 100,1))), 
+              size = sizePctLab, family = 'Segoe UI') +
+    ggtitle(plotTitle) +
+    theme_heatmap() +
+    theme(axis.text = element_text(size = 16, hjust = 0.5, 
+                                   color = grey60K, family = 'Segoe UI Light'))
+  
+  ggplot(avg) +
+    geom_tile(aes(y = shocks, x = 1, fill = avg), 
+              color = 'white', size = widthWhite) +
+    scale_fill_gradientn(colours = colorAvg, limits = rangeAvg) +
+    geom_text(aes(y = shocks, x = 1, 
+                  label = sprintf('%.1f', round(avg * 100,1))), 
+              size = sizePctLab, family = 'Segoe UI') +
+    ggtitle(plotTitle) +
+    theme_heatmap() +
+    theme(axis.text = element_text(size = 16, hjust = 0.5, 
+                                   color = grey60K, family = 'Segoe UI Light'))
 }
 
 
@@ -174,6 +224,7 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
     # geom_point(aes(x = x, y = ymin), size = (sizeDot + borderDot), color = 'black') + # border
     geom_point(aes(x = x, y = ymin, colour = x), size = sizeDot) +
     scale_colour_gradientn(colours = colorDot,   limits = rangeColors) +
+    coord_flip() +
     
     # -- Add in circles containing the number of samples per segment. --
     #     geom_rect(aes(xmax = -0.01, xmin = -0.05, 
@@ -184,7 +235,7 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
     # scale_color_gradientn(colours = colorDot) +
     
     # -- Add in names on the left --
-    annotate("text", x = min(avgVals$x) - annotAdj, y = avgVals$ymin, family = 'Segoe UI Light',
+    annotate("text", x =  - annotAdj, y = avgVals$ymin, family = 'Segoe UI Light',
              size = sizeAnnot, label= avgVals$names, hjust = 1, colour = grey90K) +
     
     # -- Annotate percents over the numbers --

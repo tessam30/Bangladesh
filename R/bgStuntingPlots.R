@@ -1,23 +1,50 @@
 # Bangladesh stunting plots
+# Laura Hughes, lhughes@usaid.gov
 
-
-# exploration: not for final ----------------------------------------------
-
-
-child = removeAttributes(child) %>% 
+child = child %>%
   mutate(ageYrs = round(ageMonths / 12,0))
 
-ggplot(child, aes(x = wealthDecile, y = stunted , colour = factor(gender))) + 
-  geom_smooth(method = 'loess', span = 1, alpha = 0.1)+
-  facet_wrap(~ ageYrs) +
-  theme_jointplot() +
-  coord_cartesian(ylim = c(0, 0.9)) +
-  theme(legend.position = 'right')
+# stunting point estimates ------------------------------------------------
+boysStunting = child %>% 
+  filter(gender == 0,
+         !is.na(stunted))
 
-ggplot(child, aes(x = wealthDecile, y = stunted, colour = factor(gender))) + 
-  geom_smooth(method = 'loess', span = 1, fill = NA)+
-  coord_cartesian(ylim = c(0, 0.9)) +
-  theme_jointplot()
+# pairGrid(boysStunting, 'stunted', 'div_name', 
+#          fileMain = '~/Documents/USAID/Bangladesh/plots/boysStunting.pdf', 
+#          fileHHsize = '~/Documents/USAID/Bangladesh/plots/boysStunting_HH.pdf', 
+#          xLim = c(0, .7), 
+#          colorDot = brewer.pal(9, 'Blues'), rangeColors = c(0,1), 
+#          colorSE = brewer.pal(9, 'Blues')[3], alphaSE = 0.4, 
+#          regionOrder = c(2,5,3,1,6,4,7))
+
+pairGrid(boysStunting, 'stunted', 'div_name', 
+         fileMain = '~/Documents/USAID/Bangladesh/plots/boysStunting_horiz.pdf', 
+         fileHHsize = '~/Documents/USAID/Bangladesh/plots/boysStunting_HH.pdf', 
+         xLim = c(0, .7), 
+         colorDot = brewer.pal(9, 'Blues'), rangeColors = c(0,1), 
+         colorSE = brewer.pal(9, 'Blues')[3], alphaSE = 0.4, 
+         regionOrder = rev(c(1,4,2,7,6,3,5)))
+
+girlsStunting = child %>% 
+  filter(gender == 1,
+         !is.na(stunted))
+
+# pairGrid(girlsStunting, 'stunted', 'div_name', 
+#          fileMain = '~/Documents/USAID/Bangladesh/plots/girlsStunting.pdf', 
+#          fileHHsize = '~/Documents/USAID/Bangladesh/plots/girlsStunting_HH.pdf', 
+#          xLim = c(0, .7), 
+#          colorDot = femaleGradient, rangeColors = c(0, 1), 
+#          colorSE = femaleGradient[2], alphaSE = 0.4, 
+#          regionOrder = c(2,5,3,1,6,4,7))
+
+pairGrid(girlsStunting, 'stunted', 'div_name', 
+         fileMain = '~/Documents/USAID/Bangladesh/plots/girlsStunting_horiz.pdf', 
+         fileHHsize = '~/Documents/USAID/Bangladesh/plots/girlsStunting_HH.pdf', 
+         xLim = c(0, .7), 
+         colorDot = femaleGradient, rangeColors = c(0, 1), 
+         colorSE = femaleGradient[2], alphaSE = 0.4, 
+         regionOrder = rev(c(1,4,3,7,6,2,5)))
+
 
 
 
@@ -118,54 +145,210 @@ ggsave("~/Documents/USAID/Bangladesh/plots/BG_stuntingAge.pdf",
        compress = FALSE,
        dpi = 300)
 
-# FCS intepolated plots ---------------------------------------------------
-# National FCS value.
-avgFCS = mean(bg$FCS)
-
-# bg$div_name = factor(bg$div_name,
-#                      c('Sylhet',
-#                                 'Chittagong',
-#                                 'Barisal',
-#                                 'Dhaka', 'Khulna',
-#                                 'Rajshahi',
-#                                 'Rangpur'))
-
-bg %>% mutate(div = div_name)
 
 
-yBox = 0.05
-yText = 0.045
 
-poorThresh = 28 # FCS "poor" categorisation
-borderlineThresh = 42 # FCS "borderline" cutoff
-avgColor = '#ce1256'
-fillColor = '#fee080'
-colText = '#662506'
 
-ggplot(bg, aes(x = FCS)) +
-  annotate("rect", xmin = 0, xmax = borderlineThresh, ymin = 0, 
-           ymax = yBox, alpha = 0.2)  +
-  annotate("rect", xmin = 0, xmax = poorThresh, ymin = 0, 
-           ymax = yBox, alpha = 0.2)  +
-  annotate("text", x = poorThresh/2, y = yText, label = "poor", 
-           size = 4, colour =  "#545454") +
-  annotate("text", x = (112 - borderlineThresh)/2 +
-             borderlineThresh, y = yText, label = "acceptable", 
-           size = 4, colour =  "#545454") +
-  geom_vline(xintercept = avgFCS, colour = avgColor, linetype = 2, size = 0.75) +
-  geom_density(alpha = 0.4, fill = fillColor) +
-  ggtitle("Food Consumption scores (2011/2012)") +
-  ylab("percent of households") +
-  xlab("food consumption score") +
-  facet_wrap(~ div_name) +
+# choropleth values: mean stunting rates. ---------------------------------
+
+stuntVal = child %>% 
+  group_by(gender, div_name, stunted) %>% 
+  summarise(s=(mean(stunted, na.rm = T)), 
+            w =(mean(wasted, na.rm = T)),
+            u = (mean(underwgt, na.rm = T)),
+            n = n()) %>% 
+  arrange(div_name)
+
+
+# # -- Quick choropleth in R. --
+# # Broken by dev version of ggplot?
+# data(admin1.regions)
+# 
+# x = data.frame(admin1.regions %>% 
+#                  filter(country == 'bangladesh') %>% 
+#                  select(region)) %>% 
+#   mutate(value = stuntVal$s[1:7])
+# 
+# admin1_choropleth("bangladesh",
+#                   x)
+# 
+# 
+# x = data.frame(admin1.regions %>% 
+#                  filter(country == 'bangladesh') %>% 
+#                  select(region)) %>% 
+#   mutate(value = stuntVal$s[8:14])
+# 
+# admin1_choropleth("bangladesh",
+#                   x)
+# 
+# 
+
+
+# Global stat: malnourished children --------------------------------------
+
+# -- Calculating percent of children who have at least one form of malnutrition. --
+child %>% 
+  filter(!is.na(malnourished)) %>% 
+  group_by(div_name, malnourished > 0)  %>% 
+  summarise(num = n()) %>% 
+  mutate(pct = percent(num/sum(num)))
+
+
+# stunting by age, sex ----------------------------------------------------
+colorGrey = '#D1D3D4' # 20% K
+colorRegion = 'dodgerblue'
+
+yMax = 0.6
+width1 = 6
+height1 = 3
+
+colorGender = c(colorMale, colorFemale)
+
+ggplot(child, aes(x = ageMonths, y = stunted, colour = factor(gender))) + 
+  geom_smooth(method = "loess", size = 0.9, span = 0.8, se = FALSE) +
+  # stat_summary(fun.y = mean, geom = 'point', size = 5)+
+  # facet_wrap(~ div_name) +
+  theme_xygrid() +
+  ggtitle('percent of stunted children') +
+  scale_colour_manual(values = colorGender) +
+  coord_cartesian(ylim = c(0, yMax)) +
+  scale_y_continuous(expand = c(0,0), labels = percent,
+                     breaks = seq(0, yMax, by  = 0.2)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = seq(0, 60, by = 20)) +
+  xlab('age (months)')
+
+
+ggsave(paste0("~/Documents/USAID/Bangladesh/plots/stunting_sexAge_allBG.pdf"), 
+       width = width1, height = height1,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
+
+
+# wasting by age, sex -----------------------------------------------------
+
+
+ggplot(child, aes(x = ageMonths, y = wasted, colour = factor(gender))) + 
+  geom_smooth(se=FALSE, size=1) +
+  # stat_summary(fun.y = mean, geom = 'point', size = 5)+
+  # facet_wrap(~ div_name) +
+  theme_xygrid() +
+  ggtitle('percent of wasted children') +
+  scale_colour_manual(values = colorGender) +
+  coord_cartesian(ylim = c(0, yMax)) +
+  scale_y_continuous(expand = c(0,0), labels = percent,
+                     breaks = seq(0, yMax, by  = 0.2)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = seq(0, 60, by = 20)) +
+  xlab('age (months)')
+
+
+ggsave(paste0("~/Documents/USAID/Bangladesh/plots/wasting_sexAge_allBG.pdf"), 
+       width = width1, height = height1,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
+
+
+
+
+
+# underweight by age, sex -------------------------------------------------
+ggplot(child, aes(x = ageMonths, y = underwgt, colour = factor(gender))) + 
+  geom_smooth(alpha = 0.2, size=1) +
+  # stat_summary(fun.y = mean, geom = 'point', size = 5)+
+  # facet_wrap(~ div_name) +
+  theme_xygrid() +
+  ggtitle('percent of underweight children') +
+  scale_colour_manual(values = colorGender) +
+  coord_cartesian(ylim = c(0, yMax)) +
+  scale_y_continuous(expand = c(0,0), labels = percent,
+                     breaks = seq(0, yMax, by  = 0.2)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = seq(0, 60, by = 20)) +
+  xlab('age (months)')
+
+
+ggsave(paste0("~/Documents/USAID/Bangladesh/plots/underwgt_sexAge_allBG.pdf"), 
+       width = width1, height = height1,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
+
+# stunting by region, age, sex --------------------------------------------
+width2 = 2.25
+height2 = 2
+yMax = 0.75
+
+regions = unique(child$div_name)
+
+df = child %>% 
+  filter(gender == 0)
+
+for (region in regions){
+  child1 = child %>% 
+    filter(div_name == region)
+  
+  q = ggplot(child, aes(x = ageMonths, y = stunted, colour = factor(gender))) + 
+    geom_smooth(se=FALSE, size=0.7) +
+    geom_smooth( aes(x = ageMonths, y = stunted, colour = factor(gender)), 
+                 data = child1,
+                 se=FALSE, size=1.5) +
+    # stat_summary(fun.y = mean, geom = 'point', size = 5)+
+    # facet_wrap(~ div_name) +
+    theme_xygrid() +
+    ggtitle(region) +
+    scale_colour_manual(values = colorGender) +
+    coord_cartesian(ylim = c(0, yMax)) +
+    scale_y_continuous(expand = c(0,0), labels = percent) +
+    scale_x_continuous(expand = c(0,0),
+                       breaks = seq(0, 60, by = 20)) +
+    xlab('age (months)')
+  
+  print(q)
+  
+  ggsave(paste0("~/Documents/USAID/Bangladesh/plots/stunting_sexAge_", region, ".pdf"), 
+         width = width2, height = height2,
+         bg = 'transparent',
+         paper = 'special',
+         units = 'in',
+         useDingbats=FALSE,
+         compress = FALSE,
+         dpi = 300)
+}
+
+
+# exploration: not for final ----------------------------------------------
+
+
+child = removeAttributes(child) %>% 
+  mutate(ageYrs = round(ageMonths / 12,0))
+
+ggplot(child, aes(x = wealthDecile, y = stunted , colour = factor(gender))) + 
+  geom_smooth(method = 'loess', span = 1, alpha = 0.1)+
+  facet_wrap(~ ageYrs) +
   theme_jointplot() +
-  theme(strip.background = element_blank(),
-        strip.text = element_text(colour = colText),
-        panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_blank())
+  coord_cartesian(ylim = c(0, 0.9)) +
+  theme(legend.position = 'right')
 
+ggplot(child, aes(x = wealthDecile, y = stunted, colour = factor(gender))) + 
+  geom_smooth(method = 'loess', span = 1, fill = NA)+
+  coord_cartesian(ylim = c(0, 0.9)) +
+  theme_jointplot()
 
 child %>% 
   group_by(div_name, FCS > 53) %>% 
   summarise(nObs = n()) %>% 
   mutate(pct = percent(nObs/sum(nObs)))
+
+

@@ -2,7 +2,7 @@
 source('~/GitHub/Bangladesh/R/importBGdata.r')
 
 # # Import plotting functions -----------------------------------------------
-# source('~/GitHub/Bangladesh/R/reusablePlots.r')
+source('~/GitHub/Bangladesh/R/reusablePlots.r')
 
 
 

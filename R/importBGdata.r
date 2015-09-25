@@ -13,9 +13,13 @@ source('~/GitHub/Bangladesh/R/setupFncnsBG.r')
 # -- Read in data --
 bg = read_dta('~/Documents/USAID/Bangladesh/Data/BGD_20150921_LAM.dta')
 
+edR = read_dta('~/Documents/USAID/Bangladesh/Data/edshkposR.dta')
+edR$a01 = as.integer(edR$a01)
+
 # Calculate rooms per capita
 bg = bg %>% 
   mutate(roomsPC = totRooms / hhsize,
+         # edshkR = ifelse(edshkpos == 1 & 
          educAdultM_cat012 = ifelse(femhead == 1, 'no education',
                                     ifelse(educAdultM_18 %in% c(0,1), 'no education',
                                            ifelse(educAdultM_18 == 2, 'primary',
@@ -30,7 +34,17 @@ bg = bg %>%
 
 child = read_dta('~/Documents/USAID/Bangladesh/Data/ChildHealth_ind.dta')
 
+occupDict = data.frame(key = 1:9,
+                       val = c('Ag-day laborer', 'Non-ag day laborer',
+                               'Salaried', 'Self-employed', 
+                               'Rickshaw/van puller', 'Business or trade',
+                               'Production business', 'Farming', 
+                               'Non-earning occupation'))
 
+bg = code2Cat(bg, occupDict, 'occupHoh', 'occupCat')
+
+# Merge in recent ed shk
+bg = full_join(bg, edR, by = 'a01')
 
 # Merge children with hh-level data ---------------------------------------------------------------
 

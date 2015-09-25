@@ -280,9 +280,11 @@ theme_blankLH <- function() {
 
 theme_heatmap <- function() {
   theme(
-    title =  element_text(size = 16, hjust = 0, color = stdGrey),
+    title =  element_text(size = 16, hjust = 0, color = grey90K,
+                          family = 'Segoe UI'),
     axis.title = element_blank(),
-    axis.text = element_text(size = 12, hjust = 0.5, color = stdGrey),
+    axis.text = element_text(size = 12, hjust = 0.5, 
+                             color = grey60K, family = 'Segoe UI Light'),
     axis.ticks = element_blank(),
     # axis.text.margin = unit(0, units =  'points'),
     panel.border = element_blank(),
