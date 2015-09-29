@@ -1,33 +1,36 @@
 # Bangladesh stunting plots
 # Laura Hughes, lhughes@usaid.gov
 
+# Import data -------------------------------------------------------------
+source('~/GitHub/Bangladesh/R/importBGdata.r')
+
 child = child %>%
   mutate(ageYrs = round(ageMonths / 12,0))
 
 # stunting point estimates ------------------------------------------------
-boysStunting = child %>% 
-  filter(gender == 0,
-         !is.na(stunted))
-
+# boysStunting = child %>% 
+#   filter(gender == 0,
+#          !is.na(stunted))
+# 
+# # pairGrid(boysStunting, 'stunted', 'div_name', 
+# #          fileMain = '~/Documents/USAID/Bangladesh/plots/boysStunting.pdf', 
+# #          fileHHsize = '~/Documents/USAID/Bangladesh/plots/boysStunting_HH.pdf', 
+# #          xLim = c(0, .7), 
+# #          colorDot = brewer.pal(9, 'Blues'), rangeColors = c(0,1), 
+# #          colorSE = brewer.pal(9, 'Blues')[3], alphaSE = 0.4, 
+# #          regionOrder = c(2,5,3,1,6,4,7))
+# 
 # pairGrid(boysStunting, 'stunted', 'div_name', 
-#          fileMain = '~/Documents/USAID/Bangladesh/plots/boysStunting.pdf', 
+#          fileMain = '~/Documents/USAID/Bangladesh/plots/boysStunting_horiz.pdf', 
 #          fileHHsize = '~/Documents/USAID/Bangladesh/plots/boysStunting_HH.pdf', 
-#          xLim = c(0, .7), 
+#          xLim = c(0, .7), yLim = c(0,.7),
 #          colorDot = brewer.pal(9, 'Blues'), rangeColors = c(0,1), 
 #          colorSE = brewer.pal(9, 'Blues')[3], alphaSE = 0.4, 
-#          regionOrder = c(2,5,3,1,6,4,7))
-
-pairGrid(boysStunting, 'stunted', 'div_name', 
-         fileMain = '~/Documents/USAID/Bangladesh/plots/boysStunting_horiz.pdf', 
-         fileHHsize = '~/Documents/USAID/Bangladesh/plots/boysStunting_HH.pdf', 
-         xLim = c(0, .7), 
-         colorDot = brewer.pal(9, 'Blues'), rangeColors = c(0,1), 
-         colorSE = brewer.pal(9, 'Blues')[3], alphaSE = 0.4, 
-         regionOrder = rev(c(1,4,2,7,6,3,5)))
-
-girlsStunting = child %>% 
-  filter(gender == 1,
-         !is.na(stunted))
+#          regionOrder = rev(c(1,4,2,7,6,3,5)))
+# 
+# girlsStunting = child %>% 
+#   filter(gender == 1,
+#          !is.na(stunted))
 
 # pairGrid(girlsStunting, 'stunted', 'div_name', 
 #          fileMain = '~/Documents/USAID/Bangladesh/plots/girlsStunting.pdf', 
@@ -37,13 +40,32 @@ girlsStunting = child %>%
 #          colorSE = femaleGradient[2], alphaSE = 0.4, 
 #          regionOrder = c(2,5,3,1,6,4,7))
 
-pairGrid(girlsStunting, 'stunted', 'div_name', 
-         fileMain = '~/Documents/USAID/Bangladesh/plots/girlsStunting_horiz.pdf', 
-         fileHHsize = '~/Documents/USAID/Bangladesh/plots/girlsStunting_HH.pdf', 
-         xLim = c(0, .7), 
-         colorDot = femaleGradient, rangeColors = c(0, 1), 
-         colorSE = femaleGradient[2], alphaSE = 0.4, 
-         regionOrder = rev(c(1,4,2,7,6,3,5)))
+# pairGrid(girlsStunting, 'stunted', 'div_name', 
+#          fileMain = '~/Documents/USAID/Bangladesh/plots/girlsStunting_horiz.pdf', 
+#          fileHHsize = '~/Documents/USAID/Bangladesh/plots/girlsStunting_HH.pdf', 
+#          xLim = c(0, .7), yLim = c(0, .7),
+#          colorDot = femaleGradient, rangeColors = c(0, 1), 
+#          colorSE = femaleGradient[2], alphaSE = 0.4, 
+#          regionOrder = rev(c(1,4,2,7,6,3,5)))
+
+facetAvgPoints(df = child, varName = 'stunted', facetVar = 'gender',
+               regionVar =  'div_name', facet1 = 0, facet2 = 1,
+               fileMain = '~/Documents/USAID/Bangladesh/plots/girlsStunting_horiz.pdf', 
+               fileHHsize = '~/Documents/USAID/Bangladesh/plots/girlsStunting_HH.pdf', 
+               heightAvg = 7, widthAvg = 16,
+               xLim = c(0, .7), horiz = TRUE,
+               colorDot = femaleGradient, rangeColors = c(0.2, .7), 
+               colorSE = femaleGradient[2], alphaSE = 0.4)
+
+facetAvgPoints(df = child, varName = 'stunted', facetVar = 'gender',
+               regionVar =  'div_name', facet1 = 0, facet2 = 1,
+               heightAvg = 7, widthAvg = 16,
+               fileMain = '~/Documents/USAID/Bangladesh/plots/boysStunting_horiz.pdf', 
+               fileHHsize = '~/Documents/USAID/Bangladesh/plots/girlsStunting_HH.pdf', 
+               xLim = c(0, .7), horiz = TRUE,
+               colorDot = brewer.pal(9, 'Blues'), rangeColors = c(0.2,.7), 
+               colorSE = brewer.pal(9, 'Blues')[3], alphaSE = 0.4)
+
 
 
 
@@ -120,7 +142,7 @@ ggplot(stuntAge, aes(x = age/12, y = b, colour = genderLabel)) +
   geom_line(size = 0.7) +
   geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = genderLabel),
               colour = NA, alpha = 0.1
-              ) +
+  ) +
   coord_cartesian(xlim = c(0, 5), ylim = c(0, 0.6)) +
   scale_y_continuous(expand = c(0,0), 
                      breaks = seq(0, 0.6, by = 0.2),

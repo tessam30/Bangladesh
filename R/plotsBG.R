@@ -15,11 +15,11 @@ source('~/GitHub/Bangladesh/R/reusablePlots.r')
 
 # Heatmap shocks by region ------------------------------------------------
 regionCol = 'div_name'
-shockCols = c("medexpshkR", "priceshkR","hazardshkR", "edshkposR")
+shockCols = c("medexpshkR", "priceshkR","hazardshkR")
 
 # x=bg  %>% select(one_of(shockCols)) %>% summarise_each(funs(mean))
-orderShks = rev(c('medexpshkR', 'priceshkR',     
-              'hazardshkR',  'edshkposR'))
+orderShks = rev(c('medexpshkR', 'hazardshkR', 'priceshkR'   
+              ))
 
 # bg %>% 
 #   select(one_of(shockCols), -edshkposR, div_name) %>% 
@@ -30,17 +30,17 @@ orderShks = rev(c('medexpshkR', 'priceshkR',
 #   select(div_name)
 
 orderRegions = c('Chittagong', 'Sylhet', 'Barisal', 'Rangpur', 'Dhaka', 'Khulna', 'Rajshahi')
-
+orderRegions = c('Sylhet', 'Barisal', 'Rajshahi', 'Khulna','Rangpur', 'Dhaka', 'Chittagong' )
 
 # ! Note-- need to remove negative signs from the educ shk data!!  
 # Reversed so the colors are right, since edshk are good.
-shkHeatmap(bg, shockCols, regionCol = 'div_name', colorAvg = brewer.pal(9, 'Greens'),
+shkHeatmap(bg, shockCols, regionCol = 'div_name',
            rangeAvg = c(0, .3),
            orderRegions = orderRegions, orderShks = orderShks)
 
 
 ggsave('~/Documents/USAID/Bangladesh/plots/totalShk_heat.pdf', 
-       width = 15*.7*.8, height = 6*.8,
+       width = 15*.7*.8, height = 4.75*.8,
        bg = 'transparent',
        paper = 'special',
        units = 'in',
@@ -48,14 +48,14 @@ ggsave('~/Documents/USAID/Bangladesh/plots/totalShk_heat.pdf',
        compress = FALSE,
        dpi = 300)
 
-ggsave('~/Documents/USAID/Bangladesh/plots/totalShk_heat_avgRd.pdf', 
-       width = 15*.7*.8/4, height = 6*.8,
-       bg = 'transparent',
-       paper = 'special',
-       units = 'in',
-       useDingbats=FALSE,
-       compress = FALSE,
-       dpi = 300)
+# ggsave('~/Documents/USAID/Bangladesh/plots/totalShk_heat_avgRd.pdf', 
+#        width = 15*.7*.8/4, height = 6*.8,
+#        bg = 'transparent',
+#        paper = 'special',
+#        units = 'in',
+#        useDingbats=FALSE,
+#        compress = FALSE,
+#        dpi = 300)
 
 
 ggsave('~/Documents/USAID/Bangladesh/plots/totalShk_heat_avgGn.pdf', 
@@ -184,28 +184,31 @@ ggsave("~/Documents/USAID/Bangladesh/plots/BG_priceshkCoping_mini.pdf",
 #   gather(shkType, shock, -occupCat)
 
 
-shkProf = bg %>% 
-  filter(!is.na(occupCat)) %>% 
-  group_by(occupCat) %>% 
-  select(one_of(shockCols)) %>% 
-  summarise(shock = mean(medexpshkR), nObs = n())
-
-ggplot(shkProf, aes(y = occupCat, size = nObs,
-                    x = shock)) +
-  geom_point() +
-  scale_x_continuous(breaks = seq(0, 0.3, by = 0.1),
-                     limits = c(0, 0.3)) +
-  theme_xGrid() +
-  theme(legend.position = 'left')
+# shkProf = bg %>% 
+#   filter(!is.na(occupCat)) %>% 
+#   group_by(occupCat) %>% 
+#   select(one_of(shockCols)) %>% 
+#   summarise(shock = mean(medexpshkR), nObs = n())
+# 
+# ggplot(shkProf, aes(y = occupCat, size = nObs,
+#                     x = shock)) +
+#   geom_point() +
+#   scale_x_continuous(breaks = seq(0, 0.3, by = 0.1),
+#                      limits = c(0, 0.3)) +
+#   theme_xGrid() +
+#   theme(legend.position = 'left')
 
 occupHH = bg %>% 
-  filter(!is.na(occupCat))
+  filter(!is.na(occupCat)) %>% 
+  mutate(occupCat = ifelse(occupCat == 'Production business', 
+                           'Business or trade', occupCat))
 
 pairGrid(occupHH, 'medexpshkR', 'occupCat', 
          fileMain = '~/Documents/USAID/Bangladesh/plots/occup_med.pdf', 
          fileHHsize = '~/Documents/USAID/Bangladesh/plots/occup.pdf', 
-         widthAvg = 2,
-         heightAvg = 2.25,
+         widthAvg = 3.7/2,
+         heightAvg = 3.1,
+         sizeDot = 5,
          sizeAnnot = 4,
          xLim = c(0, .3), 
          annotAdj = -0.25,
@@ -214,8 +217,9 @@ pairGrid(occupHH, 'medexpshkR', 'occupCat',
 pairGrid(occupHH, 'hazardshkR', 'occupCat', 
          fileMain = '~/Documents/USAID/Bangladesh/plots/occup_haz.pdf', 
          fileHHsize = '~/Documents/USAID/Bangladesh/plots/occup.pdf', 
-         widthAvg = 2,
-         heightAvg = 2.25,
+         widthAvg = 3.7/2,
+         heightAvg = 3.1,
+         sizeDot = 5,
          sizeAnnot = 4,
          xLim = c(0, .3), 
          annotAdj = -0.25,
@@ -225,8 +229,9 @@ pairGrid(occupHH, 'hazardshkR', 'occupCat',
 pairGrid(occupHH, 'priceshkR', 'occupCat', 
          fileMain = '~/Documents/USAID/Bangladesh/plots/occup_price.pdf', 
          fileHHsize = '~/Documents/USAID/Bangladesh/plots/occup.pdf',
-         widthAvg = 2,
-         heightAvg = 2.25,
+         widthAvg = 3.7/2,
+         heightAvg = 2.6,
+         sizeDot = 5,
          sizeAnnot = 4,
          xLim = c(0, .3), 
          annotAdj = -0.25,

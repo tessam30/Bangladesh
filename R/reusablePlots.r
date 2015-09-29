@@ -55,8 +55,8 @@ shkHeatmap = function (df,
   # -- Convert the avg. to relative average from the mean. --
   df_rel = df_regions - df_avg
   
-  # ! Hack for now, to flip the 
-  df_rel$edshkposR = df_rel$edshkposR * -1
+  #   # ! Hack for now, to flip the 
+  #   df_rel$edshkposR = df_rel$edshkposR * -1
   
   # Add back in region names
   df_rel = df_rel %>% 
@@ -87,17 +87,17 @@ shkHeatmap = function (df,
     theme(axis.text = element_text(size = 16, hjust = 0.5, 
                                    color = grey60K, family = 'Segoe UI Light'))
   
-  ggplot(avg) +
-    geom_tile(aes(y = shocks, x = 1, fill = avg), 
-              color = 'white', size = widthWhite) +
-    scale_fill_gradientn(colours = colorAvg, limits = rangeAvg) +
-    geom_text(aes(y = shocks, x = 1, 
-                  label = sprintf('%.1f', round(avg * 100,1))), 
-              size = sizePctLab, family = 'Segoe UI') +
-    ggtitle(plotTitle) +
-    theme_heatmap() +
-    theme(axis.text = element_text(size = 16, hjust = 0.5, 
-                                   color = grey60K, family = 'Segoe UI Light'))
+  #   ggplot(avg) +
+  #     geom_tile(aes(y = shocks, x = 1, fill = avg), 
+  #               color = 'white', size = widthWhite) +
+  #     scale_fill_gradientn(colours = colorAvg, limits = rangeAvg) +
+  #     geom_text(aes(y = shocks, x = 1, 
+  #                   label = sprintf('%.1f', round(avg * 100,1))), 
+  #               size = sizePctLab, family = 'Segoe UI') +
+  #     ggtitle(plotTitle) +
+  #     theme_heatmap() +
+  #     theme(axis.text = element_text(size = 16, hjust = 0.5, 
+  #                                    color = grey60K, family = 'Segoe UI Light'))
 }
 
 
@@ -105,10 +105,11 @@ shkHeatmap = function (df,
 
 pairGrid = function (df, shkVar, regionVar, title = NA, 
                      # File names
-                     fileMain, fileHHsize, 
+                     fileMain = NA, fileHHsize = NA, 
+                     savePlots = TRUE,
                      confidLevel = 0.95,
                      sizeLine = 0.9, colorLine = 'grey',
-                     xLim = NA, 
+                     xLim = NA, yLim = NA,
                      lineAdj = 0.02,
                      # Region names
                      annotAdj = 0.02,
@@ -125,6 +126,8 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
                      # S.E. bars
                      colorSE = grey10K,
                      alphaSE = 1,
+                     # Whether plot is vertical or horiz.
+                     horiz = FALSE,
                      # Height/width for output
                      heightAvg = 3.4,
                      widthAvg = 4.2, 
@@ -147,8 +150,8 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
   if (any(is.na(df %>% select_(shkVar)))) {
     warning('There are NAs in `shkVar`.  They are being removed!')
     
-    df = na.omit(df$shkVar)
-    stop('fix me')
+    df = df %>% 
+      filter_(paste0('!is.na(',shkVar, ')'))
   }
   
   # -- Calculate average data, sd, and SE --
@@ -190,6 +193,9 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
     xLim = c(min(min(avgVals$x)) - 0.1, max(max(avgVals$x)) + 0.1)
   }
   
+  if (is.na(yLim)) {
+    yLim = c(-5, max(avgVals$ymin)+ 8)
+  }
   
   
   # -- Set up the base plot --
@@ -198,7 +204,7 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
     
     # -- axis limits --
     # coord_cartesian(ylim = c(-5, nrow(avgVals)*10 + 10), xlim = xLim) +
-    coord_cartesian(ylim = c(-5, max(avgVals$ymin)+ 8), xlim = xLim) + 
+    coord_cartesian(ylim = yLim, xlim = xLim) + 
     scale_x_continuous(labels = percent, expand = c(0,0)) +
     
     # -- labels --
@@ -224,7 +230,7 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
     # geom_point(aes(x = x, y = ymin), size = (sizeDot + borderDot), color = 'black') + # border
     geom_point(aes(x = x, y = ymin, colour = x), size = sizeDot) +
     scale_colour_gradientn(colours = colorDot,   limits = rangeColors) +
-    coord_flip() +
+    
     
     # -- Add in circles containing the number of samples per segment. --
     #     geom_rect(aes(xmax = -0.01, xmin = -0.05, 
@@ -235,12 +241,14 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
     # scale_color_gradientn(colours = colorDot) +
     
     # -- Add in names on the left --
-    annotate("text", x =  - annotAdj, y = avgVals$ymin, family = 'Segoe UI Light',
-             size = sizeAnnot, label= avgVals$names, hjust = 1, colour = grey90K) +
+  annotate("text", x =  - annotAdj, y = avgVals$ymin, family = 'Segoe UI Light',
+           size = sizeAnnot, label= avgVals$names, hjust = 1, colour = grey90K) +
     
     # -- Annotate percents over the numbers --
     annotate("text", x = avgVals$x + xLabAdj, y = avgVals$ymin + 4, family = 'Segoe UI Light',
-             size = sizePct, label= percent(avgVals$x,0), hjust = 0.5, colour = grey60K) 
+             size = sizePct, label= percent(avgVals$x,0), hjust = 0.5, colour = grey60K) +
+    
+    if(horiz == TRUE) coord_flip()
   
   
   
@@ -251,17 +259,19 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
   print(mainPlot)
   
   # -- Save the main plot --
-  ggsave(fileMain, 
-         plot = mainPlot,
-         width = widthAvg, height = heightAvg,
-         bg = 'transparent',
-         paper = 'special',
-         units = 'in',
-         useDingbats=FALSE,
-         compress = FALSE,
-         scale = 2,
-         dpi = 300)
   
+  if (savePlots){
+    ggsave(fileMain, 
+           plot = mainPlot,
+           width = widthAvg, height = heightAvg,
+           bg = 'transparent',
+           paper = 'special',
+           units = 'in',
+           useDingbats=FALSE,
+           compress = FALSE,
+           scale = 2,
+           dpi = 300)
+  }
   
   
   # -- Plot the household sizes in a separate plot --
@@ -285,19 +295,19 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
              size = sizeAnnot, label= avgVals$names, hjust = 1, colour = grey90K)
   
   # print(hhSizePlot)
-  
-  # -- Save the main plot --
-  ggsave(fileHHsize, 
-         plot = hhSizePlot,
-         width = widthAvg, height = heightAvg,
-         bg = 'transparent',
-         paper = 'special',
-         units = 'in',
-         useDingbats=FALSE,
-         compress = FALSE,
-         scale = 2,
-         dpi = 300)
-  
+  if(savePlots){
+    # -- Save the main plot --
+    ggsave(fileHHsize, 
+           plot = hhSizePlot,
+           width = widthAvg, height = heightAvg,
+           bg = 'transparent',
+           paper = 'special',
+           units = 'in',
+           useDingbats=FALSE,
+           compress = FALSE,
+           scale = 2,
+           dpi = 300)
+  }
   return(mainPlot)
 }
 
