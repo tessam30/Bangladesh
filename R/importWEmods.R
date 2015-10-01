@@ -429,3 +429,10 @@ fm %>% filter(!is.na(verbalAbuse)) %>% group_by(div_name, verbalAbuse) %>%
 fm %>% filter(!is.na(verbalAbuse), physicalAbuse == 1) %>% 
   group_by(verbalAbuse) %>%  summarise(n())
 
+
+
+# Z2 ----------------------------------------------------------------------
+
+z2 = read.csv('~/Documents/USAID/Bangladesh/Data/household/data/csv/061_mod_z2_female.CSV')
+
+fm = left_join(fm, z2)

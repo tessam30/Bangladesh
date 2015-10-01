@@ -84,10 +84,10 @@ regionVar = 'div_name'
 
 
 physAbusePlot = pairGrid (fm, shkVar = 'physicalAbuse', regionVar = regionVar, 
-          savePlots = FALSE, horiz = FALSE, 
-          colorDot = colorAbuse, annotAdj = -0.04,
-          xLim = c(0, 0.55),
-          rangeColors = rangeColors)
+                          savePlots = FALSE, horiz = FALSE, 
+                          colorDot = colorAbuse, annotAdj = -0.04,
+                          xLim = c(0, 0.55),
+                          rangeColors = rangeColors)
 
 physAbusePlot + 
   geom_rect(aes(xmin = lb, xmax = ub, ymin = ymin, ymax = ymax), data = physicalAbuse_DHS,
@@ -100,7 +100,7 @@ physAbusePlot +
            colour = PuPiYl[21], hjust = 1,
            size = 6, label = paste0('Violence Against Women\nsurvey 2011: ',
                                     percent(physicalAbuse_VAW$avg)),
-                                    family = 'Segoe UI Semilight') +
+           family = 'Segoe UI Semilight') +
   annotate('text', x = physicalAbuse_DHS$avg - 0.02,  y = 40,
            colour = PuPiYl[13], hjust = 1,
            size = 6, label = paste0('DHS survey 2007: ',
@@ -170,7 +170,7 @@ nBin = 30
 x= fm  %>% mutate(latBin = cut(latitude, breaks = nBin), lonBin = cut(longitude, breaks = nBin))
 
 df = x %>% group_by(lonBin, latBin) %>% summarise(avg = mean(anyAbuse, na.rm = TRUE))
-  
+
 ggplot(df, aes(x = lonBin, y = latBin, colour = avg)) + 
   geom_point(size = 4, shape = 15) + 
   theme_blankLH() +
@@ -200,12 +200,53 @@ ggplot(fm, aes(x = wealthDecile, y = verbalAbuse)) +
                      labels = c('low', '', '', '', 'medium',
                                 '', '' ,'', '', 'high'),
                      name = 'wealth'
-                     ) +
+  ) +
   coord_cartesian(ylim = c(0,0.4)) +
   scale_y_continuous(labels = percent, expand = c(0,0), name = "") +
   theme_yGrid() +
   theme(axis.title.x = element_text(size = 16, color = grey60K, family = 'Segoe UI Semilight'))
 
+
+
+
+wlth = fm  %>% group_by(wealthDecile) %>% 
+  summarise(physical = mean(physicalAbuse, na.rm = TRUE), 
+            verbal = mean(verbalAbuse, na.rm=TRUE), num = n()) %>% 
+  gather(abuseType, avg, -wealthDecile, -num)
+
+
+ggplot(wlth, aes(x = wealthDecile, y = avg, 
+                 label = percent(avg),
+                 group = abuseType,
+                 colour = abuseType)) +
+  geom_line(size = 0.2) +
+  geom_point(size = 20, colour= 'white', shape = 17) +
+  geom_text(family = 'Segoe UI Light', size = 6) +
+  scale_x_discrete(limits = c(1,10),
+                   breaks = 1:10,
+                   labels = c('low', '', '', '', 'medium',
+                              '', '' ,'', '', 'high'),
+                   name = 'wealth') +
+  scale_colour_manual(values = c('physical' = PuPiYl[9], 'verbal' = PuPiYl[21])) +
+  annotate('text', label = 'verbal', x = 5, y = 0.39,
+           family = 'Segoe UI Semilight',
+           size = 5, colour = PuPiYl[21]) +
+  annotate('text', label = 'physical', x = 5, y = 0.15,
+           family = 'Segoe UI Semilight',
+           size = 5, colour = PuPiYl[9]) +
+  scale_y_continuous(labels = percent, 
+                     limits = c(0, 0.4),
+                     expand = c(0,0), name = "") +
+  theme_xOnly()
+
+ggsave("~/Documents/USAID/Bangladesh/plots/BG_abuseWealth.pdf",
+       width = 6, height = 4,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
 
 
 # age ---------------------------------------------------------------------
@@ -249,24 +290,38 @@ workingWomen = fm %>%
   summarise_each(funs(mean(., na.rm = TRUE))) %>% 
   gather(abuse, pct, -femWork)
 
-workingWomen$femWork = factor(workingWomen$femWork, c(1,0))
+workingWomen$femWork = factor(workingWomen$femWork, c(0,1))
+# workingWomen$abuse = factor(workingWomen$abuse, c('verbal', 'physical'))
 
-ggplot(workingWomen, aes(x = abuse, y = pct, fill = femWork)) +
+ggplot(workingWomen, aes(x = abuse, y = pct, label = percent(pct),
+                         fill = femWork)) +
   geom_bar(stat = 'identity', position = 'dodge', alpha = 0.85) +
-  scale_fill_manual(values = c('0' = PuPiYl[15], '1' = PuPiYl[21])) +
+  scale_fill_manual(values = c('0' = PuPiYl[14], '1' = PuPiYl[21])) +
+  geom_text( family = 'Segoe UI Semibold', colour = 'white', size = 8) +
   annotate('text', label = 'unemployed', x = 1, y = .35,
            family = 'Segoe UI Semilight',
-           size = 5, colour = PuPiYl[21]) +
+           size = 5, colour = PuPiYl[14]) +
   annotate('text', label = 'employed', x = 1, y = .3,
            family = 'Segoe UI Semilight',
-           size = 5, colour = PuPiYl[15]) +
-  facet_wrap(~div_name, nrow = 2) +
+           size = 5, colour = PuPiYl[21]) +
   coord_cartesian(ylim = c(0,0.6)) +
   scale_x_discrete(labels = c('verbal', 'physical')) +
-  scale_y_continuous(labels = percent, expand = c(0,0), name = "") +
-  theme_yGrid() 
+  scale_y_reverse(labels = percent, expand = c(0,0), name = "") +
+  coord_flip()+
+  theme_xAxis_yText() +
+  theme(axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        axis.text.x = element_blank())
 
-
+ggsave("~/Documents/USAID/Bangladesh/plots/BG_abuseWorking.pdf",
+       width = 3, height = 2,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
 
 # number of kids ----------------------------------------------------------
 numKids = fm  %>% group_by(under15Cat) %>% 
@@ -305,4 +360,142 @@ ggsave("~/Documents/USAID/Bangladesh/plots/BG_abuseNumKids.pdf",
        useDingbats=FALSE,
        compress = FALSE,
        dpi = 300)
+
+
+# Mobiles -----------------------------------------------------------------
+rangpur = fm %>% 
+  filter(div_name == 'Rangpur')
+
+
+ggplot(fm, aes(x = wealthDecile, y = femaleOwnsOperatesCell)) +
+  geom_smooth(method = 'loess', span = 0.85, 
+              se = FALSE, size = 0.8, colour = grey30K) +
+  geom_smooth(aes(x = wealthDecile, y = femaleOwnsOperatesCell),
+              data = rangpur,
+              method = 'loess', span = 0.85, 
+              se = FALSE, size = 0.8, colour = brewer.pal(9, 'Blues')[6]) +
+  annotate('text', label = 'Bangladesh', family = 'Segoe UI',
+           size = 5, colour = grey30K, x = 3, y = 0.1) +
+  annotate('text', label = 'Rangpur', family = 'Segoe UI',
+           size = 5, colour = brewer.pal(9, 'Blues')[6], x = 3, y = 0.3) +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(1,10),
+                     breaks = 1:10,
+                     labels = c('low', '', '', '', 'medium',
+                                '', '' ,'', '', 'high'),
+                     name = 'wealth'
+  ) +
+  coord_cartesian(ylim = c(0,1)) +
+  scale_y_continuous(labels = percent, expand = c(0,0), name = "") +
+  theme_yGrid() +
+  theme(axis.title.x = element_text(size = 16, color = grey60K, family = 'Segoe UI Semilight'))
+
+
+ggsave("~/Documents/USAID/Bangladesh/plots/BG_female_cell.pdf",
+       width = 6, height = 4,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
+
+
+ggplot(fm, aes(x = wealthDecile, y = femWork)) +
+  geom_smooth(method = 'loess', span = 0.85, 
+              se = FALSE, size = 0.8, colour = grey30K) +
+  geom_smooth(aes(x = wealthDecile, y = femWork),
+              data = rangpur,
+              method = 'loess', span = 0.85, 
+              se = FALSE, size = 0.8, colour = brewer.pal(9, 'Blues')[6]) +
+  annotate('text', label = 'Bangladesh', family = 'Segoe UI',
+           size = 5, colour = grey30K, x = 3, y = 0.1) +
+  annotate('text', label = 'Rangpur', family = 'Segoe UI',
+           size = 5, colour = brewer.pal(9, 'Blues')[6], x = 3, y = 0.3) +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(1,10),
+                     breaks = 1:10,
+                     labels = c('low', '', '', '', 'medium',
+                                '', '' ,'', '', 'high'),
+                     name = 'wealth'
+  ) +
+  coord_cartesian(ylim = c(0,1)) +
+  scale_y_continuous(labels = percent, expand = c(0,0), name = "") +
+  theme_yGrid() +
+  theme(axis.title.x = element_text(size = 16, color = grey60K, family = 'Segoe UI Semilight'))
+
+
+ggsave("~/Documents/USAID/Bangladesh/plots/BG_female_work.pdf",
+       width = 6, height = 4,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
+
+
+
+ggplot(fm, aes(x = wealthDecile, y = femWork)) +
+  geom_smooth(method = 'loess', span = 0.85, 
+              se = FALSE, size = 0.8, colour = 'dodgerblue') +
+  facet_wrap(~div_name, nrow = 2) +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(1,10),
+                     breaks = 1:10,
+                     labels = c('low', '', '', '', 'medium',
+                                '', '' ,'', '', 'high'),
+                     name = 'wealth'
+  ) +
+  coord_cartesian(ylim = c(0,1)) +
+  scale_y_continuous(labels = percent, expand = c(0,0), name = "") +
+  theme_yGrid() +
+  theme(axis.title.x = element_text(size = 16, color = grey60K, family = 'Segoe UI Semilight'))
+
+
+
+# supervisor effect -------------------------------------------------------
+supervisor = data.frame(n = c(3619, 610, 3619, 610), abuse = c(756, 444, 331, 124), 
+                        abuseType = c('verbal abuse', 'verbal abuse','physical abuse', 'physical abuse'), supervisor = c(0,1, 0,1)) %>% 
+  mutate(pct = abuse/n)
+
+ggplot(supervisor, aes(x = abuseType, y = pct, label = percent(pct),
+                       fill = factor(supervisor))) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  geom_text(aes(y = pct - 0.02), family = 'Segoe UI Semibold', colour = 'white', size = 8) +
+  scale_fill_manual(values = c('0' = '#35978f', '1' = '#01665e')) +
+  theme_xAxis_yText() +
+  coord_flip() +
+  scale_y_reverse() +
+  theme(axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.title = element_blank(),
+        axis.text.x = element_blank())
+
+
+
+ggsave("~/Documents/USAID/Bangladesh/plots/BG_supervisor.pdf",
+       width = 6, height = 2.5,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
+
+
+
+# Who allowed to go to hospital -------------------------------------------
+fm = fm %>% 
+  mutate(hospitalSelf = ifelse(z2_03_1 == 1, 1,
+                               ifelse(!is.na(z2_03_1), 0, NA)),
+         hospitalHubby = ifelse(z2_03_1 == 2, 1,
+                               ifelse(!is.na(z2_03_1), 0, NA)))
+
+pairGrid (fm, shkVar = 'hospitalSelf', regionVar = 'div_name', 
+                          savePlots = FALSE, horiz = FALSE, 
+                          colorDot = colorAbuse, annotAdj = -0.04,
+                          xLim = c(0, .3),
+                          rangeColors = c(0, 0.3))
+
 
