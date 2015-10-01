@@ -228,7 +228,7 @@ pairGrid = function (df, shkVar, regionVar, title = NA,
     
     # -- Overlay the points --
     # geom_point(aes(x = x, y = ymin), size = (sizeDot + borderDot), color = 'black') + # border
-    geom_point(aes(x = x, y = ymin, colour = x), size = sizeDot) +
+    geom_point(aes(x = x, y = ymin, colour = x), size = sizeDot, shape = 16) +
     scale_colour_gradientn(colours = colorDot,   limits = rangeColors) +
     
     
