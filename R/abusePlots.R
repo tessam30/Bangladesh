@@ -492,10 +492,38 @@ fm = fm %>%
          hospitalHubby = ifelse(z2_03_1 == 2, 1,
                                ifelse(!is.na(z2_03_1), 0, NA)))
 
-pairGrid (fm, shkVar = 'hospitalSelf', regionVar = 'div_name', 
+pairGrid (fm, shkVar = 'hospitalHubby', regionVar = 'div_name', 
                           savePlots = FALSE, horiz = FALSE, 
                           colorDot = colorAbuse, annotAdj = -0.04,
-                          xLim = c(0, .3),
-                          rangeColors = c(0, 0.3))
+                          xLim = c(0, .6),
+                          rangeColors = c(0, 0.6))
+
+fm$div_name = factor(fm$div_name,
+                     rev(c('Barisal', 'Sylhet', 'Dhaka','Chittagong',
+                       'Rangpur', 'Rajshahi', 
+                       'Khulna')))
+
+ggplot(fm, aes(x  = div_name, y = hospitalSelf)) +
+  stat_summary(fun.y = mean, geom = 'bar', fill = 'blue') + 
+  coord_flip() +
+  theme_yGrid() +
+  annotate('text', label = 'husband', x = 6, y = 0.45,
+           colour = 'dodgerblue', size = 5, family = 'Segoe UI Semilight') +
+  annotate('text', label = 'self', x = 5, y = 0.45,
+           colour = 'blue', size = 5, family = 'Segoe UI Semilight') +
+  ggtitle('Who decides whether you go to the hospital?')+
+  stat_summary(aes(x  = div_name, y = -1* hospitalHubby),
+               fun.y = mean, geom = 'bar', fill = 'dodgerblue') + 
+  scale_y_continuous(name = "", labels = percent) +
+  coord_flip(ylim = c(-.5, .5)) +
+   theme_xGrid() 
 
 
+ggsave("~/Documents/USAID/Bangladesh/plots/BG_goHospital.pdf",
+       width = 6, height = 4,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
