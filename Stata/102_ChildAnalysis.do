@@ -64,7 +64,7 @@ global assets "landless logland TLUtotal_trim fishFarm fishOpenWater migration e
 global geo "distHealth distRoad distTown distMarket ib(4).intDate ib(1).ftfzone"
 global wealth "latrineSealed brickTinHome dfloor mobile privateWater "
 global gender "femaleOwnsOperatesCell femaleOwnsOperatesBirds femaleOwnsOperatesSmLvstk femaleOwnsOperatesLgLvstk hcWorkerVisit tvBFeeding"
-global shocks "medexpshkR priceshkR"
+global shocks "medexpshkR priceshkR "
 
 est clear
 eststo stunt1: reg stunted $demog $educ $cDemog $assets $geo $wealth $shocks ib(3).divName, cluster(a01)

@@ -84,9 +84,9 @@ foreach x of numlist 2007(1)2012 {
 *end
 
 * Any flood related shock (includes loss of livestock and crops specifically due to flood)
-g byte floodshk = inlist(t1_02, 6, 9, 10, 11, 14, 16) & inlist(t1_10, 1, 2)
-g byte floodshkR = inlist(t1_02, 6, 9, 10, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
-g byte floodshk2007 = inlist(t1_02, 6, 9, 10, 11, 14, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2007)
+g byte floodshk = inlist(t1_02, 6, 9, 10, 11, 14, 15, 16) & inlist(t1_10, 1, 2)
+g byte floodshkR = inlist(t1_02, 6, 9, 10, 11, 14, 15, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
+g byte floodshk2007 = inlist(t1_02, 6, 9, 10, 11, 14, 15, 16) & inlist(t1_10, 1, 2) & inlist(t1_05, 2007)
 la var floodshk "Any flood related shock"
 la var floodshkR "Any flood related shock in last 3 years"
 la var floodshk2007 "Flood related shock in 2007 (Cyclone Sidr)"
@@ -116,7 +116,7 @@ la var finshk "Any type of financial shock (dowry, wedding, bribes, extortion...
 la var finshkR "Any type of financial shock (dowry, wedding, bribes, extortion...etc)"
 
 * Food price shock
-g byte priceshk = inlist(t1_02, 32, 33) & inlist(t1_10, 1, 2) 
+g byte priceshk = inlist(t1_02, 32) & inlist(t1_10, 1, 2) 
 g byte priceshkR = inlist(t1_02, 32) & inlist(t1_10, 1, 2) & inlist(t1_05, 2010, 2011, 2012)
 la var priceshk "Price shock"
 la var priceshkR "Price shock in last 3 years"

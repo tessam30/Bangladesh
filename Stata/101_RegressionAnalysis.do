@@ -226,7 +226,7 @@ keep a01 farmOccupHoh religHoh marriedHead femhead agehead literateHead educAdul
 order a01 
 saveold "$pathout/BGD_201509_SpatFilter.dta", replace version(13)
 restore
-
+bob
 
 
 
@@ -261,8 +261,21 @@ esttab dd*, se star(* 0.10 ** 0.05 *** 0.01)  wide  se(4) r2(4) pr2 aic bic
 4) Households interviewed in October and November have significantly lower DD;
 5) Rangpur & Khulna lower DD
 
+*******
+* ICT *
+*******/
+twoway (lowess mobile wealthIndex )(lowess clock wealthIndex) (lowess hhownsTV wealthIndex )
+twoway (lowess mobile agehead )(lowess clock agehead) (lowess hhownsTV agehead ), by(divName)
 
-* Model food consumption score as an OLS, using robust standard errors
+
+
+
+
+
+
+
+
+/* Model food consumption score as an OLS, using robust standard errors
 est clear
 qui eststo fcs, title("FCS OLS"): reg FCS $ddexog1 $FCSprice, vce(robust)  
 qui eststo fcs2, title("FCS OLS"): reg FCS $ddexog2 $FCSprice, vce(robust) 
@@ -291,6 +304,12 @@ coefplot fcs1 || fcs2 || fcs3 , xline(0, lwidth(thin) lcolor(gray)) mlabs(small)
 
 /* Food Consumption Score is a weighted frequency of consumption of eight food groups at by the household. The metric 
 represents both dietary diversity and freqency dimensions of food consumption. */
+
+
+
+
+
+
 
 
 *#############*
