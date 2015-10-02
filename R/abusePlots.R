@@ -486,22 +486,27 @@ ggsave("~/Documents/USAID/Bangladesh/plots/BG_supervisor.pdf",
 
 
 # Who allowed to go to hospital -------------------------------------------
+z2 = read.csv('~/Documents/USAID/Bangladesh/Data/household/data/csv/061_mod_z2_female.CSV')
+
+fm = left_join(fm, z2)
+
+
 fm = fm %>% 
   mutate(hospitalSelf = ifelse(z2_03_1 == 1, 1,
                                ifelse(!is.na(z2_03_1), 0, NA)),
          hospitalHubby = ifelse(z2_03_1 == 2, 1,
-                               ifelse(!is.na(z2_03_1), 0, NA)))
+                                ifelse(!is.na(z2_03_1), 0, NA)))
 
 pairGrid (fm, shkVar = 'hospitalHubby', regionVar = 'div_name', 
-                          savePlots = FALSE, horiz = FALSE, 
-                          colorDot = colorAbuse, annotAdj = -0.04,
-                          xLim = c(0, .6),
-                          rangeColors = c(0, 0.6))
+          savePlots = FALSE, horiz = FALSE, 
+          colorDot = colorAbuse, annotAdj = -0.04,
+          xLim = c(0, .6),
+          rangeColors = c(0, 0.6))
 
 fm$div_name = factor(fm$div_name,
                      rev(c('Barisal', 'Sylhet', 'Dhaka','Chittagong',
-                       'Rangpur', 'Rajshahi', 
-                       'Khulna')))
+                           'Rangpur', 'Rajshahi', 
+                           'Khulna')))
 
 ggplot(fm, aes(x  = div_name, y = hospitalSelf)) +
   stat_summary(fun.y = mean, geom = 'bar', fill = 'blue') + 
@@ -511,16 +516,19 @@ ggplot(fm, aes(x  = div_name, y = hospitalSelf)) +
            colour = 'dodgerblue', size = 5, family = 'Segoe UI Semilight') +
   annotate('text', label = 'self', x = 5, y = 0.45,
            colour = 'blue', size = 5, family = 'Segoe UI Semilight') +
-  ggtitle('Who decides whether you go to the hospital?')+
+  ggtitle('Who decides whether you can go by yourself to the hospital?')+
   stat_summary(aes(x  = div_name, y = -1* hospitalHubby),
                fun.y = mean, geom = 'bar', fill = 'dodgerblue') + 
-  scale_y_continuous(name = "", labels = percent) +
-  coord_flip(ylim = c(-.5, .5)) +
-   theme_xGrid() 
+  scale_y_continuous(name = "", labels = percent, 
+                     breaks = seq(-0.5, 0.3, by = 0.1)) +
+  coord_flip(ylim = c(-.5, 0.3)) +
+  theme_xGrid() +
+  theme(panel.grid.major.x = element_line(colour = 'white'),
+        axis.line.x = element_line(colour = 'white', size = 0.4))
 
 
 ggsave("~/Documents/USAID/Bangladesh/plots/BG_goHospital.pdf",
-       width = 6, height = 4,
+       width = 7, height = 4,
        bg = 'transparent',
        paper = 'special',
        units = 'in',
