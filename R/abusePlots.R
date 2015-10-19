@@ -535,3 +535,23 @@ ggsave("~/Documents/USAID/Bangladesh/plots/BG_goHospital.pdf",
        useDingbats=FALSE,
        compress = FALSE,
        dpi = 300)
+
+
+
+# Total mobiles -----------------------------------------------------------
+regionVar = 'div_name'
+pairGrid (bg, shkVar = 'mobile', regionVar = 'div_name',
+          # output file names
+          fileMain = '~/Documents/USAID/Bangladesh/plots/BG_mobiles.pdf', 
+          fileHHsize = '~/Documents/USAID/Bangladesh/plots/BG_mobiles_hh.pdf', 
+          
+          # Size of the saved plot; note that it's 1/2 the actual size.
+          heightAvg = 3.4,
+          widthAvg = 4.2, 
+          
+          # Colors and color limits.
+          colorDot = brewer.pal(9, 'Blues'), 
+          rangeColors = c(0.5,.8),
+          # Location of the region names -- negative goes more to right.
+          annotAdj = -0.2,
+          xLim = c(0, 0.85))
