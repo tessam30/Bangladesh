@@ -374,3 +374,56 @@ child %>%
   mutate(pct = percent(nObs/sum(nObs)))
 
 
+
+# simple bar plot of stunting for CO --------------------------------------
+childDF = child  %>% 
+  filter(!is.na(stunted)) %>% 
+  group_by(gender) %>% 
+  summarise(y = mean(stunted))
+
+ggplot(childDF, aes(x = gender, y = y, 
+                    label = percent(y),
+                    fill = factor(gender))) + 
+  geom_bar(stat = 'identity') +
+  geom_text(size = 5,
+            family = 'Segoe UI',
+            colour = 'white', vjust = 1,
+            nudge_y = -0.03) + 
+  # geom_hline(yintercept = childDF$y[1],
+             # colour = grey60K) +
+  theme_yGrid() + 
+  theme(axis.title = element_blank()) +
+  ggtitle('Boys are stunted more often than girls') +
+  scale_fill_manual(values = colorGender) +
+  scale_y_continuous(expand = c(0,0), 
+                     limits = c(0, 0.5),
+                     breaks = c(0, 0.25, 0.5),
+                     labels = percent) +
+  scale_x_continuous(breaks = c(0, 1), 
+                     labels = c('boys', 'girls'))
+
+
+# choropleth for CO -------------------------------------------------------
+childRegions = child  %>% 
+  filter(!is.na(stunted)) %>% 
+  group_by(div_name) %>% 
+  summarise(y = mean(stunted))
+
+# Simple graph to get colors for choropleth
+ggplot(childRegions, aes(x = div_name, y = y, colour = y)) +
+  geom_point(size = 10) +
+  scale_color_gradientn(colours = brewer.pal(9, 'BuPu'),
+                        limits = c(0.35, 0.52))
+
+ggplot(childRegions, aes(x = div_name, y = y, colour = y)) +
+  geom_point(size = 10) +
+  scale_color_gradientn(colours = brewer.pal(9, 'Purples'),
+                        limits = c(0.35, 0.52)) +
+  theme_blankLH()
+
+ggplot(childRegions, aes(x = div_name, y = y, colour = y)) +
+  geom_point(size = 10) +
+  scale_color_gradientn(colours = brewer.pal(9, 'Greys'),
+                        limits = c(0.35, 0.56)) +
+  theme_blankLH()
+ 
