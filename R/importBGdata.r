@@ -11,7 +11,8 @@
 source('~/GitHub/Bangladesh/R/setupFncnsBG.r')
 
 # -- Read in data --
-bg = read_dta('~/Documents/USAID/Bangladesh/Data/BGD_20150921_LAM.dta')
+# bg = read_dta('~/Documents/USAID/Bangladesh/Data/BGD_20150921_LAM.dta')
+bg = read_dta('~/Documents/USAID/Bangladesh/Data/BGD_20150921_LAM_v13.dta')
 
 edR = read_dta('~/Documents/USAID/Bangladesh/Data/edshkposR.dta')
 edR$a01 = as.integer(edR$a01)

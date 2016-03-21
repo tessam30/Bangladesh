@@ -217,6 +217,9 @@ child %>%
 
 
 # stunting by age, sex ----------------------------------------------------
+library(readxl)
+child = read_excel('~/Documents/USAID/Bangladesh/Data/stunting_bangladesh.xlsx')
+
 colorGrey = '#D1D3D4' # 20% K
 colorRegion = 'dodgerblue'
 
@@ -224,21 +227,35 @@ yMax = 0.6
 width1 = 6
 height1 = 3
 
-colorGender = c(colorMale, colorFemale)
+colorGender = c(colorFemale, colorMale)
 
 ggplot(child, aes(x = ageMonths, y = stunted, colour = factor(gender))) + 
   geom_smooth(method = "loess", size = 0.9, span = 0.8, se = FALSE) +
+  annotate(geom = 'text', x = 61, y = 0.58, colour = colorFemale, size = 4, 
+           family = 'Segoe UI Semilight', label = 'female') +
+  annotate(geom = 'text', x = 61, y = 0.5, colour = colorMale, size = 4, 
+           family = 'Segoe UI Semilight', label = 'male') +
   # stat_summary(fun.y = mean, geom = 'point', size = 5)+
   # facet_wrap(~ div_name) +
   theme_xygrid() +
-  ggtitle('percent of stunted children') +
+  theme(axis.title = element_blank()) +
+  # ggtitle('percent of stunted children') +
   scale_colour_manual(values = colorGender) +
   coord_cartesian(ylim = c(0, yMax)) +
   scale_y_continuous(expand = c(0,0), labels = percent,
                      breaks = seq(0, yMax, by  = 0.2)) +
   scale_x_continuous(expand = c(0,0),
-                     breaks = seq(0, 60, by = 20)) +
-  xlab('age (months)')
+                     breaks = seq(0, 60, by = 20))
+  # xlab('age (months)')
+
+ggsave(paste0("~/Google Drive/GeoCenter projects/Catalytic Offering Infographic/components/stunting_sexAge_allBG.pdf"), 
+       width = 2.8, height = 1.1,
+       bg = 'transparent',
+       paper = 'special',
+       units = 'in',
+       useDingbats=FALSE,
+       compress = FALSE,
+       dpi = 300)
 
 
 ggsave(paste0("~/Documents/USAID/Bangladesh/plots/stunting_sexAge_allBG.pdf"), 
