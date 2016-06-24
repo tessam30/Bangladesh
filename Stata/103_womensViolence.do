@@ -58,10 +58,6 @@ coefplot (matrix(stat[1,])), ci((stat[5,] stat[6,]))/*
 */ title(For women reporting verbal abuse physical abuse is highest in Barisal, size(small) color(black)) 
 
 
-
-
-
-
 twoway (lowess verbalAbuse wealthIndex)(lowess physicalAbuse wealthIndex)
 twoway (lowess femaleOwnsOperatesCell wealthIndex), by(div_name, total row(2))
 twoway (lowess mobile wealthIndex), by(div_name, total row(2))
@@ -84,3 +80,4 @@ coefplot (matrix(stat[1,])), ci((stat[5,] stat[6,]))/*
 
 
 
+logit verbalAbuse  ib(7).a19 ib(3).divName, or
